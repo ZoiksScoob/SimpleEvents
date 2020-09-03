@@ -1,0 +1,60 @@
+--Initial Thoughts----------------------------------------------------------------------------------------------------------------------
+
+First things first was to read through the specifications a few times and write out a diagram of what's needed.
+
+I need a frontend and backend.
+
+The backend needs to have the following:
+    - DB Model for Events, Tickets, and Users
+        - Event model should have the following:
+            Name - this will be what's displayed on the front end
+            Date - of the event, also for display
+            Initial # tickets - also for display
+            Additional # tickets - not in the brief but would be useful to keep track
+            Unique Identifier - GUID for passing around to uniquely identify the event
+            Datetime created - Useful primarily for reporting as a possible extension, also debugging
+
+        - Ticket model:
+            Unique Identifier - Again GUID for passing around to uniquely identify the ticket. Ensure no clashes between guids of events and tickets?
+            Is redeemed - Tickets have 2 statuses, "Ok" and "Redeemed", this can be a flag.
+            Datetime created - useful again for reporting and debugging
+
+        - User model:
+            Username
+            Hashed password
+            Datetime created
+
+    - API endpoints
+
+        event/
+            create/ - create an event and return it's GUID
+            status/<eventIdentifier> - return total # tickets and # redeemed for event
+            download/<eventIdentifier> - return file containing GUIDs of unredeemed tickets for the event
+            add/<eventIdentifier> - also provided # new tickets to create for event
+
+        ticket/
+            redeem/<ticketIdentifier> - return confirmation or rejection based on status of ticket
+                this should be exposed with no login required; it's assumed that if a user has the Identifier
+                it's theirs to redeem.
+
+            status/<ticketIdentifier> - return status of ticket
+
+The frontend should be 4 pages
+    
+    - Login page
+
+    - Events page: see a paginated and searchable list of events
+
+    - Event page: page for displaying the details and status of the event (per status/ endpoint)
+
+    - Ticket page: page for showing the status of an individual page. 
+        Have the list of unredeemed tickets on an event, with the link to this page being here?
+
+
+Series of actions:
+    1. Create an API
+    2. Have tests for it
+    3. Create a front end for the api
+    4. Have tests for frontend
+
+------------------------------------------------------------------------------------------------------------------------
