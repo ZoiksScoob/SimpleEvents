@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_uuid import FlaskUUID
 
 
 def create_app(test_config=None):
@@ -22,6 +23,9 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    # Initialise UUID extension
+    FlaskUUID(app)
 
     # Setup database
     from . import db

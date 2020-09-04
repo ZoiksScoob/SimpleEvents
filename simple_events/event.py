@@ -1,6 +1,9 @@
 import uuid
+import csv
+from io import StringIO
 from datetime import datetime
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for
+from itertools import chain
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for, make_response
 from werkzeug.exceptions import abort
 from simple_events.auth import login_required
 from simple_events.db import get_db
@@ -14,7 +17,7 @@ bp = Blueprint('event', __name__)
 def index():
     db = get_db()
     events = db.execute(
-        'SELECT e.name, e.date,'
+        'SELECT e.name, e.date, e.guid,'
         ' SUM(CASE WHEN t.is_redeemed = 0 THEN 1 ELSE 0 END) AS n_unredeemed_tickets'
         ' FROM event e'
         ' JOIN ticket t on t.event_id = e.id'
@@ -66,7 +69,7 @@ def create():
                 'INSERT INTO event '
                 ' (name, date, initial_number_of_tickets, guid, author_id)'
                 ' VALUES (?, ?, ?, ?, ?)',
-                (name, date, n_tickets, str(event_uuid), g.user['id'])
+                (name, date, n_tickets, str(event_uuid).lower(), g.user['id'])
             )
 
             new_event_id = cursor.lastrowid
@@ -85,3 +88,63 @@ def create():
             return redirect(url_for('event.index'))
 
     return render_template('event/create.html')
+
+
+@bp.route('/<uuid:eventIdentifier>/status', methods=('GET',))
+@login_required
+def status(eventIdentifier):
+    db = get_db()
+
+    event_identifier = str(eventIdentifier).lower()
+
+    event = db.execute(
+        'SELECT e.name, e.date, e.guid,'
+        ' SUM(CASE WHEN t.is_redeemed = 0 THEN 1 ELSE 0 END) AS n_unredeemed_tickets,'
+        ' COUNT(t.id) AS n_tickets'
+        ' FROM event e'
+        ' JOIN ticket t on t.event_id = e.id'
+        ' WHERE e.guid = ?'
+        ' GROUP BY e.name, e.date',
+        (event_identifier,)
+    ).fetchone()
+
+    if event is None:
+        abort(404, f"Event id {eventIdentifier} doesn't exist.")
+
+    return render_template('event/status.html', event=event)
+
+
+@bp.route('/<uuid:eventIdentifier>/download', methods=('GET',))
+@login_required
+def download(eventIdentifier):
+    db = get_db()
+
+    event_identifier = str(eventIdentifier).lower()
+
+    tickets = db.execute(
+        'SELECT t.guid'
+        ' FROM ticket t'
+        ' JOIN event e on e.id = t.event_id'
+        ' WHERE t.is_redeemed = 0 AND e.guid = ?',
+        (event_identifier,)
+    ).fetchall()
+
+    if tickets is None:
+        flash("No tickets available for this event")
+
+    # Make csv file to send
+    header = (("Unredeemed Ticket Tokens",),)
+    ticket_guids = ((str(ticket['guid']).lower(),) for ticket in tickets)
+    csv_lines = chain(header, ticket_guids)
+
+    string_io = StringIO()
+    csv_file = csv.writer(string_io)
+    csv_file.writerows(csv_lines)
+
+    file_name = 'event_export_' + event_identifier + '.csv'
+
+    output = make_response(string_io.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename={file_name}"
+    output.headers["Content-type"] = "text/csv"
+
+    return output
