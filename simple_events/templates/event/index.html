@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Events{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('event.create') }}">Create Event</a>
+  {% endif %}
+    <button class="button" onClick="window.location.reload();">Refresh Page</button>
+{% endblock %}
+
+{% block content %}
+  {% for event in events %}
+    <article class="event">
+      <header>
+        <div>
+          <h1>{{ event['name'] }}</h1>
+          <div class="about">On {{ event['date'].strftime('%Y-%m-%d') }}, {{ event['n_unredeemed_tickets'] }} tickets left</div>
+        </div>
+      </header>
+    </article>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

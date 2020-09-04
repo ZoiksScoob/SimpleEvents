@@ -28,7 +28,10 @@ def create_app(test_config=None):
     db.init_app(app)
 
     # Register blueprints
-    from . import auth
+    from . import auth, event
     app.register_blueprint(auth.bp)
+
+    app.register_blueprint(event.bp)
+    app.add_url_rule('/', endpoint='index')
 
     return app
