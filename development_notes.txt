@@ -58,3 +58,6 @@ Series of actions:
     4. Have tests for frontend
 
 ------------------------------------------------------------------------------------------------------------------------
+
+Change of plan, the specifications can be met by building a web app following
+flasks tutorial and amending it as needed.
