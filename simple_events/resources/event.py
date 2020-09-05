@@ -5,8 +5,8 @@ from datetime import datetime
 from itertools import chain
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for, make_response
 from werkzeug.exceptions import abort
-from simple_events.auth import login_required
-from simple_events.db import get_db
+from simple_events.resources.auth import login_required
+from simple_events.resources.db import get_db
 
 
 bp = Blueprint('event', __name__)
