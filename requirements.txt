@@ -1,2 +1,3 @@
 Flask==1.1.2
 Flask-UUID==0.2
+Flask-RESTful==0.3.8
