@@ -1,20 +1,33 @@
-from flask import Blueprint, request, make_response, jsonify
-from flask.views import MethodView
+from flask import request, make_response, jsonify
+from flask_restx import Namespace, Resource, fields
+from werkzeug.security import check_password_hash
 
-from simple_events import bcrypt, db
+from simple_events.models.db import db
 from simple_events.models.auth import User, BlacklistToken
 
-auth_blueprint = Blueprint('auth', __name__)
+# Namespace
+api = Namespace('auth', description='User Authentication & Tokens')
+
+# Models
+username_password_model = api.model('Register', {
+    'username': fields.String(required=True),
+    'password': fields.String(required=True),
+})
 
 
-class RegisterAPI(MethodView):
+@api.route('/register')
+class Register(Resource):
     """
     User Registration Resource
     """
 
-    def post(self):
+    @api.doc('register_user')
+    @api.expect(username_password_model)
+    @api.marshal_with(username_password_model, code=201)
+    def post(self, **kwargs):
+        import pdb; pdb.set_trace()
         # get the post data
-        post_data = request.get_json()
+        post_data = api.payload
         # check if user already exists
         user = User.query.filter_by(username=post_data.get('username')).first()
         if not user:
@@ -34,7 +47,7 @@ class RegisterAPI(MethodView):
                     'auth_token': auth_token.decode()
                 }
                 return make_response(jsonify(responseObject)), 201
-            except Exception as e:
+            except Exception:
                 responseObject = {
                     'status': 'fail',
                     'message': 'Some error occurred. Please try again.'
@@ -48,20 +61,24 @@ class RegisterAPI(MethodView):
             return make_response(jsonify(responseObject)), 202
 
 
-class LoginAPI(MethodView):
+@api.route('/login')
+class Login(Resource):
     """
     User Login Resource
     """
+    @api.doc('login_user')
+    @api.expect(username_password_model)
+    @api.marshal_with(username_password_model, code=201)
     def post(self):
         # get the post data
-        post_data = request.get_json()
+        post_data = api.payload
         try:
             # fetch the user data
             user = User.query.filter_by(
                 username=post_data.get('username')
             ).first()
-            if user and bcrypt.check_password_hash(
-                user.password, post_data.get('password')
+            if user and check_password_hash(
+                post_data.get('password'), user.password
             ):
                 auth_token = user.encode_auth_token(user.id)
                 if auth_token:
@@ -86,9 +103,10 @@ class LoginAPI(MethodView):
             return make_response(jsonify(responseObject)), 500
 
 
-class UserAPI(MethodView):
+@api.route('/status')
+class Status(Resource):
     """
-    User Resource
+    User Status Resource
     """
     def get(self):
         # get the auth token
@@ -130,7 +148,8 @@ class UserAPI(MethodView):
             return make_response(jsonify(responseObject)), 401
 
 
-class LogoutAPI(MethodView):
+@api.route('/logout')
+class Logout(Resource):
     """
     Logout Resource
     """
@@ -173,31 +192,3 @@ class LogoutAPI(MethodView):
                 'message': 'Provide a valid auth token.'
             }
             return make_response(jsonify(responseObject)), 403
-
-# define the API resources
-registration_view = RegisterAPI.as_view('register_api')
-login_view = LoginAPI.as_view('login_api')
-user_view = UserAPI.as_view('user_api')
-logout_view = LogoutAPI.as_view('logout_api')
-
-# add Rules for API Endpoints
-auth_blueprint.add_url_rule(
-    '/auth/register',
-    view_func=registration_view,
-    methods=['POST']
-)
-auth_blueprint.add_url_rule(
-    '/auth/login',
-    view_func=login_view,
-    methods=['POST']
-)
-auth_blueprint.add_url_rule(
-    '/auth/status',
-    view_func=user_view,
-    methods=['GET']
-)
-auth_blueprint.add_url_rule(
-    '/auth/logout',
-    view_func=logout_view,
-    methods=['POST']
-)

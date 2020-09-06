@@ -1,7 +1,12 @@
 import jwt
 import datetime
+from werkzeug.security import generate_password_hash
 
-from simple_events import app, db, bcrypt
+from simple_events.utils.helpers import get_app_settings
+from simple_events.models.db import db
+
+
+app_settings = get_app_settings()
 
 
 class User(db.Model):
@@ -15,9 +20,7 @@ class User(db.Model):
 
     def __init__(self, username, password):
         self.username = username
-        self.password = bcrypt.generate_password_hash(
-            password, app.config.get('BCRYPT_LOG_ROUNDS')
-        ).decode()
+        self.password = generate_password_hash(password)
         self.registered_on = datetime.datetime.now()
 
     def encode_auth_token(self, user_id):
@@ -33,7 +36,7 @@ class User(db.Model):
             }
             return jwt.encode(
                 payload,
-                app.config.get('SECRET_KEY'),
+                app_settings.SECRET_KEY,
                 algorithm='HS256'
             )
         except Exception as e:
@@ -47,7 +50,7 @@ class User(db.Model):
         :return: integer|string
         """
         try:
-            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+            payload = jwt.decode(auth_token, app_settings.SECRET_KEY)
             is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
             if is_blacklisted_token:
                 return 'Token blacklisted. Please log in again.'

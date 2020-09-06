@@ -2,14 +2,14 @@ import time
 import json
 import unittest
 
-from simple_events import db
+from simple_events.models.db import db
 from simple_events.models.auth import User, BlacklistToken
 from tests.base import BaseTestCase
 
 
 def register_user(self, username, password):
     return self.client.post(
-        '/auth/register',
+        'auth/register',
         data=json.dumps(dict(
             username=username,
             password=password
@@ -20,7 +20,7 @@ def register_user(self, username, password):
 
 def login_user(self, username, password):
     return self.client.post(
-        '/auth/login',
+        'auth/login',
         data=json.dumps(dict(
             username=username,
             password=password
@@ -35,6 +35,12 @@ class TestAuthBlueprint(BaseTestCase):
         """ Test for user registration """
         with self.client:
             response = register_user(self, 'dummy_username', '123456')
+            print('\n', '='*100, '\n')
+            print('\n\rtest_registration: RESPONSE\n', response, '\n\n')
+            print(response.status_code, response.status, '\n\n')
+            print(response.data, '\n\n')
+            print(dir(response))
+            print('\n', '='*100, '\n')
             data = json.loads(response.data.decode())
             self.assertTrue(data['status'] == 'success')
             self.assertTrue(data['message'] == 'Successfully registered.')

@@ -5,7 +5,8 @@ import coverage
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
-from simple_events import app, db
+from simple_events.app import app
+from simple_events.models.db import db
 
 
 COV = coverage.coverage(
