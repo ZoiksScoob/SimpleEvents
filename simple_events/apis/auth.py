@@ -119,28 +119,17 @@ class Login(Resource):
 
 
 @api.route('/status')
+@api.expect(token_parser)
 class Status(Resource):
     """
     User Status Resource
     """
     def get(self):
         # get the auth token
-        auth_header = request.headers.get('Authorization')
+        auth_header = token_parser.parse_args()
+        auth_token = auth_header['Authorization']
 
-        if auth_header:
-            try:
-                auth_token = auth_header.split(" ")[1]
-
-            except IndexError:
-                response_object = {
-                    'status': 'fail',
-                    'message': 'Bearer token malformed.'
-                }
-                return response_object, 401
-        else:
-            auth_token = ''
-
-        if auth_token:
+        try:
             resp = User.decode_auth_token(auth_token)
 
             if not isinstance(resp, str):
@@ -149,9 +138,8 @@ class Status(Resource):
                 response_object = {
                     'status': 'success',
                     'data': {
-                        'user_id': user.id,
                         'username': user.username,
-                        'registered_on': user.registered_on
+                        'registered_on': user.registered_on.isoformat()
                     }
                 }
                 return response_object, 200
@@ -162,12 +150,12 @@ class Status(Resource):
             }
             return response_object, 401
 
-        else:
+        except Exception as e:
             response_object = {
                 'status': 'fail',
-                'message': 'Provide a valid auth token.'
+                'message': 'An Internal Server Error Occurred.'
             }
-            return response_object, 401
+            return response_object, 500
 
 
 @api.route('/logout')
