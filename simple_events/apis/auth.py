@@ -1,7 +1,11 @@
+import logging
 from flask_restx import Namespace, Resource, reqparse
 
 from simple_events.models.db import db, bcrypt
 from simple_events.models.auth import User, BlacklistToken
+
+# Get logger
+logger = logging.getLogger(__name__)
 
 # Namespace
 api = Namespace('auth', description='User Authentication & Tokens')
@@ -56,7 +60,9 @@ class Register(Resource):
                 }
                 return response_object, 202
 
-        except:
+        except Exception:
+            logger.error('An error occurred registering a user', exc_info=True)
+
             response_object = {
                 'status': 'fail',
                 'message': 'An Internal Server Error Occurred.',
@@ -98,7 +104,9 @@ class Login(Resource):
                 }
                 return response_object, 404
 
-        except Exception as e:
+        except Exception:
+            logger.error('An error occurred logging in a user', exc_info=True)
+
             response_object = {
                 'status': 'fail',
                 'message': 'An Internal Server Error Occurred.'
@@ -139,7 +147,9 @@ class Status(Resource):
             }
             return response_object, 401
 
-        except Exception as e:
+        except Exception:
+            logger.error('An error occurred checking status of a user', exc_info=True)
+
             response_object = {
                 'status': 'fail',
                 'message': 'An Internal Server Error Occurred.'
@@ -189,7 +199,9 @@ class Logout(Resource):
                 }
                 return response_object, 401
 
-        except Exception as e:
+        except Exception:
+            logger.error('An error occurred logging in a user', exc_info=True)
+
             response_object = {
                 'status': 'fail',
                 'message': 'An Internal Server Error Occurred.'
