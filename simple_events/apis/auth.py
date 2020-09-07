@@ -65,13 +65,14 @@ class Register(Resource):
 
 
 @api.route('/login')
+@api.expect(usr_pwd_parser)
 class Login(Resource):
     """
     User Login Resource
     """
     def post(self):
         # get the post data
-        post_data = api.payload
+        post_data = usr_pwd_parser.parse_args()
         try:
             # fetch the user data
             user = User.query.filter_by(
