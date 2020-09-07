@@ -178,23 +178,23 @@ class Logout(Resource):
                     # insert the token
                     db.session.add(blacklist_token)
                     db.session.commit()
-                    responseObject = {
+                    response_object = {
                         'status': 'success',
                         'message': 'Successfully logged out.'
                     }
-                    return make_response(jsonify(responseObject)), 200
+                    return make_response(jsonify(response_object)), 200
                 except Exception as e:
-                    responseObject = {
+                    response_object = {
                         'status': 'fail',
                         'message': e
                     }
-                    return make_response(jsonify(responseObject)), 200
+                    return make_response(jsonify(response_object)), 200
             else:
-                responseObject = {
+                response_object = {
                     'status': 'fail',
                     'message': resp
                 }
-                return make_response(jsonify(responseObject)), 401
+                return make_response(jsonify(response_object)), 401
 
         except Exception as e:
             response_object = {
