@@ -14,6 +14,7 @@ class BaseConfig:
     BCRYPT_LOG_ROUNDS = 13
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     RESTPLUS_VALIDATE = True
+    AUTH_TOKEN_EXPIRY_SECONDS = int(os.environ.get('AUTH_TOKEN_EXPIRY_SECONDS', 60 * 60))
 
 
 class DevelopmentConfig(BaseConfig):
@@ -31,6 +32,7 @@ class TestingConfig(BaseConfig):
     # In memory database
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     PRESERVE_CONTEXT_ON_EXCEPTION = False
+    AUTH_TOKEN_EXPIRY_SECONDS = 5
 
 
 class ProductionConfig(BaseConfig):
