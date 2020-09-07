@@ -3,7 +3,7 @@ import json
 import unittest
 
 from simple_events.models.db import db
-from simple_events.models.auth import User, BlacklistToken
+from simple_events.models.auth import User, BlacklistToken, AUTH_TOKEN_EXPIRY_SECONDS
 from tests.base import BaseTestCase
 
 
@@ -181,7 +181,7 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(resp_login.content_type == 'application/json')
             self.assertEqual(resp_login.status_code, 200)
             # invalid token logout
-            time.sleep(6)
+            time.sleep(AUTH_TOKEN_EXPIRY_SECONDS + 1)
             response = self.client.post(
                 '/auth/logout',
                 headers=dict(
