@@ -87,20 +87,20 @@ class Login(Resource):
                         'message': 'Successfully logged in.',
                         'auth_token': auth_token.decode()
                     }
-                    return make_response(jsonify(response_object)), 200
+                    return response_object, 200
             else:
                 response_object = {
                     'status': 'fail',
                     'message': 'User does not exist.'
                 }
-                return make_response(jsonify(response_object)), 404
+                return response_object, 404
         except Exception as e:
             print(e)
             response_object = {
                 'status': 'fail',
                 'message': 'Try again'
             }
-            return make_response(jsonify(response_object)), 500
+            return response_object, 500
 
 
 @api.route('/status')
