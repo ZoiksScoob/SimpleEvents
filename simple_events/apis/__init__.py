@@ -1,4 +1,4 @@
-from flask_restx import Api, Namespace
+from flask_restx import Api
 
 from simple_events.apis.auth import api as ns_auth
 
