@@ -1,9 +1,12 @@
+import os
 import jwt
 import datetime
 
 from simple_events.core.utils import get_config
 from simple_events.models.db import db, bcrypt
 
+
+AUTH_TOKEN_EXPIRY_SECONDS = os.environ.get('AUTH_TOKEN_EXPIRY_SECONDS', 5)
 
 app_config = get_config()
 
@@ -30,7 +33,7 @@ class User(db.Model):
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=AUTH_TOKEN_EXPIRY_SECONDS),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }
