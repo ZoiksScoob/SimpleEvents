@@ -35,12 +35,6 @@ class TestAuthBlueprint(BaseTestCase):
         """ Test for user registration """
         with self.client:
             response = register_user(self, 'dummy_username', '123456')
-            print('\n', '='*100, '\n')
-            print('\n\rtest_registration: RESPONSE\n', response, '\n\n')
-            print(response.status_code, response.status, '\n\n')
-            print(response.data, '\n\n')
-            print(dir(response))
-            print('\n', '='*100, '\n')
             data = json.loads(response.data.decode())
             self.assertTrue(data['status'] == 'success')
             self.assertTrue(data['message'] == 'Successfully registered.')
