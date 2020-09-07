@@ -98,7 +98,7 @@ class TestAuthBlueprint(BaseTestCase):
             response = self.client.get(
                 '/auth/status',
                 headers=dict(
-                    Authorization='Bearer ' + json.loads(
+                    Authorization=json.loads(
                         resp_register.data.decode()
                     )['auth_token']
                 )
@@ -116,7 +116,7 @@ class TestAuthBlueprint(BaseTestCase):
             response = self.client.get(
                 '/auth/status',
                 headers=dict(
-                    Authorization='Bearer' + json.loads(
+                    Authorization=json.loads(
                         resp_register.data.decode()
                     )['auth_token']
                 )
@@ -150,7 +150,7 @@ class TestAuthBlueprint(BaseTestCase):
             response = self.client.post(
                 '/auth/logout',
                 headers=dict(
-                    Authorization='Bearer ' + json.loads(
+                    Authorization=json.loads(
                         resp_login.data.decode()
                     )['auth_token']
                 )
@@ -185,7 +185,7 @@ class TestAuthBlueprint(BaseTestCase):
             response = self.client.post(
                 '/auth/logout',
                 headers=dict(
-                    Authorization='Bearer ' + json.loads(
+                    Authorization=json.loads(
                         resp_login.data.decode()
                     )['auth_token']
                 )
@@ -225,7 +225,7 @@ class TestAuthBlueprint(BaseTestCase):
             response = self.client.post(
                 '/auth/logout',
                 headers=dict(
-                    Authorization='Bearer ' + json.loads(
+                    Authorization=json.loads(
                         resp_login.data.decode()
                     )['auth_token']
                 )
@@ -247,7 +247,7 @@ class TestAuthBlueprint(BaseTestCase):
             response = self.client.get(
                 '/auth/status',
                 headers=dict(
-                    Authorization='Bearer ' + json.loads(
+                    Authorization=json.loads(
                         resp_register.data.decode()
                     )['auth_token']
                 )
