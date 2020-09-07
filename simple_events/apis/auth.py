@@ -75,9 +75,7 @@ class Login(Resource):
         post_data = usr_pwd_parser.parse_args()
         try:
             # fetch the user data
-            user = User.query.filter_by(
-                username=post_data.get('username')
-            ).first()
+            user = User.query.filter_by(username=post_data.get('username')).first()
 
             passwords_match = bcrypt.check_password_hash(
                 pw_hash=user.password, password=post_data.get('password')
@@ -85,6 +83,7 @@ class Login(Resource):
 
             if user and passwords_match:
                 auth_token = user.encode_auth_token(user.id)
+
                 if auth_token:
                     response_object = {
                         'status': 'success',
@@ -92,18 +91,21 @@ class Login(Resource):
                         'auth_token': auth_token.decode()
                     }
                     return response_object, 200
+
             else:
                 response_object = {
                     'status': 'fail',
                     'message': 'User does not exist.'
                 }
                 return response_object, 404
+
         except Exception as e:
-            print(e)
+
             response_object = {
                 'status': 'fail',
                 'message': 'Try again'
             }
+
             return response_object, 500
 
 
