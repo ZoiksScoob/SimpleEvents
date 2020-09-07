@@ -3,7 +3,7 @@ from flask_uuid import FlaskUUID
 # from werkzeug.contrib.fixers import ProxyFix
 
 from simple_events.apis import api
-from simple_events.models.db import db
+from simple_events.models.db import db, bcrypt
 from simple_events.utils.helpers import get_app_settings
 
 
@@ -20,6 +20,9 @@ FlaskUUID(app)
 
 # Initialise DB
 db.init_app(app)
+
+# Initialise Bcrypt
+bcrypt.init_app(app)
 
 # Initialise API
 api.init_app(app)

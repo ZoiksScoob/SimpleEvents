@@ -34,3 +34,10 @@ class ProductionConfig(BaseConfig):
     SECRET_KEY = 'not_so_secret_secret_key'
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = sqlite_local_base + database_name
+
+
+configs = dict(
+    DevelopmentConfig=DevelopmentConfig,
+    TestingConfig=TestingConfig,
+    ProductionConfig=ProductionConfig
+)

@@ -1,8 +1,7 @@
 from flask import request, make_response, jsonify
 from flask_restx import Namespace, Resource, fields
-from werkzeug.security import check_password_hash
 
-from simple_events.models.db import db
+from simple_events.models.db import db, bcrypt
 from simple_events.models.auth import User, BlacklistToken
 
 # Namespace
@@ -77,7 +76,7 @@ class Login(Resource):
             user = User.query.filter_by(
                 username=post_data.get('username')
             ).first()
-            if user and check_password_hash(
+            if user and bcrypt.check_password_hash(
                 post_data.get('password'), user.password
             ):
                 auth_token = user.encode_auth_token(user.id)
