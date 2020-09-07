@@ -75,10 +75,10 @@ class Login(Resource):
         post_data = usr_pwd_parser.parse_args()
         try:
             # fetch the user data
-            user = User.query.filter_by(username=post_data.get('username')).first()
+            user = User.query.filter_by(username=post_data['username']).first()
 
             passwords_match = bcrypt.check_password_hash(
-                pw_hash=user.password, password=post_data.get('password')
+                pw_hash=user.password, password=post_data['password']
             )
 
             if user and passwords_match:
