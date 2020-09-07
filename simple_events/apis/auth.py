@@ -80,9 +80,6 @@ class Login(Resource):
     """
     User Login Resource
     """
-    @api.doc('login_user')
-    @api.expect(username_password_model)
-    @api.marshal_with(username_password_model, code=201)
     def post(self):
         # get the post data
         post_data = api.payload
