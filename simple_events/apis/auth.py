@@ -159,17 +159,16 @@ class Status(Resource):
 
 
 @api.route('/logout')
+@api.expect(token_parser)
 class Logout(Resource):
     """
     Logout Resource
     """
     def post(self):
         # get auth token
-        auth_header = request.headers.get('Authorization')
-        if auth_header:
-            auth_token = auth_header.split(" ")[1]
-        else:
-            auth_token = ''
+        auth_header = token_parser.parse_args()
+        auth_token = auth_header['Authorization']
+
         if auth_token:
             resp = User.decode_auth_token(auth_token)
             if not isinstance(resp, str):
