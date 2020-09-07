@@ -36,29 +36,35 @@ class Register(Resource):
                         username=post_data['username'],
                         password=post_data['password']
                     )
+
                     # insert the user
                     db.session.add(user)
                     db.session.commit()
+
                     # generate the auth token
                     auth_token = user.encode_auth_token(user.id)
+
                     response_object = {
                         'status': 'success',
                         'message': 'Successfully registered.',
                         'auth_token': auth_token.decode()
                     }
                     return response_object, 201
+
                 except Exception as e:
                     response_object = {
                         'status': 'fail',
                         'message': 'Some error occurred. Please try again.'
                     }
                     return response_object, 501
+
             else:
                 response_object = {
                     'status': 'fail',
                     'message': 'User already exists. Please Log in.',
                 }
                 return response_object, 202
+
         except:
             response_object = {
                 'status': 'fail',
@@ -76,6 +82,7 @@ class Login(Resource):
     def post(self):
         # get the post data
         post_data = usr_pwd_parser.parse_args()
+
         try:
             # fetch the user data
             user = User.query.filter_by(username=post_data['username']).first()
@@ -103,10 +110,9 @@ class Login(Resource):
                 return response_object, 404
 
         except Exception as e:
-
             response_object = {
                 'status': 'fail',
-                'message': 'Try again'
+                'message': 'An Internal Server Error Occurred.'
             }
 
             return response_object, 500
