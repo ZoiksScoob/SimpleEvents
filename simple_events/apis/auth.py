@@ -30,32 +30,24 @@ class Register(Resource):
                 username=post_data['username']).first()
 
             if not user:
-                try:
-                    user = User(
-                        username=post_data['username'],
-                        password=post_data['password']
-                    )
+                user = User(
+                    username=post_data['username'],
+                    password=post_data['password']
+                )
 
-                    # insert the user
-                    db.session.add(user)
-                    db.session.commit()
+                # insert the user
+                db.session.add(user)
+                db.session.commit()
 
-                    # generate the auth token
-                    auth_token = user.encode_auth_token(user.id)
+                # generate the auth token
+                auth_token = user.encode_auth_token(user.id)
 
-                    response_object = {
-                        'status': 'success',
-                        'message': 'Successfully registered.',
-                        'auth_token': auth_token.decode()
-                    }
-                    return response_object, 201
-
-                except Exception as e:
-                    response_object = {
-                        'status': 'fail',
-                        'message': 'Some error occurred. Please try again.'
-                    }
-                    return response_object, 501
+                response_object = {
+                    'status': 'success',
+                    'message': 'Successfully registered.',
+                    'auth_token': auth_token.decode()
+                }
+                return response_object, 201
 
             else:
                 response_object = {
