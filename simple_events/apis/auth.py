@@ -22,42 +22,58 @@ class Register(Resource):
 
     @api.doc('register_user')
     @api.expect(username_password_model)
-    @api.marshal_with(username_password_model, code=201)
-    def post(self, **kwargs):
-        import pdb; pdb.set_trace()
-        # get the post data
-        post_data = api.payload
-        # check if user already exists
-        user = User.query.filter_by(username=post_data.get('username')).first()
-        if not user:
-            try:
-                user = User(
-                    username=post_data.get('username'),
-                    password=post_data.get('password')
-                )
-                # insert the user
-                db.session.add(user)
-                db.session.commit()
-                # generate the auth token
-                auth_token = user.encode_auth_token(user.id)
+    def post(self):
+        try:
+            # get the post data
+            post_data = request.json
+
+            if not post_data:
                 responseObject = {
-                    'status': 'success',
-                    'message': 'Successfully registered.',
-                    'auth_token': auth_token.decode()
-                }
-                return make_response(jsonify(responseObject)), 201
-            except Exception:
+                        'status': 'fail',
+                        'message': "Unable to retrieve json payload. Please ensure header {'Content-Type': 'application/json'} is included in your request."
+                    }
+                return responseObject, 401
+
+            # check if user already exists
+            user = User.query.filter_by(
+                username=post_data.get('username')).first()
+
+            if not user:
+                try:
+                    user = User(
+                        username=post_data.get('username'),
+                        password=post_data.get('password')
+                    )
+                    # insert the user
+                    db.session.add(user)
+                    db.session.commit()
+                    # generate the auth token
+                    auth_token = user.encode_auth_token(user.id)
+                    responseObject = {
+                        'status': 'success',
+                        'message': 'Successfully registered.',
+                        'auth_token': auth_token.decode()
+                    }
+                    return responseObject, 201
+                except Exception as e:
+                    responseObject = {
+                        'status': 'fail',
+                        'message': 'Some error occurred. Please try again.'
+                    }
+                    return responseObject, 501
+            else:
                 responseObject = {
                     'status': 'fail',
-                    'message': 'Some error occurred. Please try again.'
+                    'message': 'User already exists. Please Log in.',
                 }
-                return make_response(jsonify(responseObject)), 401
-        else:
+                return responseObject, 202
+        except:
             responseObject = {
                 'status': 'fail',
-                'message': 'User already exists. Please Log in.',
+                'message': 'An Internal Server Error Occurred.',
             }
-            return make_response(jsonify(responseObject)), 202
+            return responseObject, 500
+
 
 
 @api.route('/login')
