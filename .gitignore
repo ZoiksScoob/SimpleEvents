@@ -2,7 +2,7 @@
 .vscode/
 
 # Database files
-*.db
+**/*.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
