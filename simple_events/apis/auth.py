@@ -1,5 +1,5 @@
 import logging
-from flask_restx import Namespace, Resource, reqparse
+from flask_restx import Namespace, Resource, fields, reqparse
 
 from simple_events.models.db import db, bcrypt
 from simple_events.models.auth import User, BlacklistToken
@@ -10,13 +10,46 @@ logger = logging.getLogger(__name__)
 # Namespace
 api = Namespace('auth', description='User Authentication & Tokens')
 
-# Models
+# Parsers
 usr_pwd_parser = reqparse.RequestParser(bundle_errors=True)
 usr_pwd_parser.add_argument('username', required=True, location='json')
 usr_pwd_parser.add_argument('password', required=True, location='json')
 
 token_parser = reqparse.RequestParser()
 token_parser.add_argument('Authorization', required=True, location='headers')
+
+# Models
+status_message_model = api.model('StatusMessage', {
+    'status': fields.String(
+        required=True,
+        description='Status of the request.',
+        enum=['success', 'fail']),
+    'message': fields.String(
+        required=True,
+        description='Message from the server giving more detail on the status of the request.'
+        )
+})
+
+status_message_token_model = api.inherit('StatusMessageToken', status_message_model, {
+    'auth_token': fields.String(
+        required=False,
+        description='A signed authorisation token.'
+        )
+})
+
+data_fields = api.model('UserInfo', {
+    'username': fields.String(
+        required=True, 
+        description='Username.'),
+    'registered_on': fields.DateTime(
+        required=True,
+        description='Date & time of when the user was registered.'
+    )
+})
+
+status_message_data_model = api.inherit('StatusMessageData', status_message_model, {
+    'data': fields.Nested(data_fields)
+})
 
 
 @api.route('/register')
@@ -25,6 +58,12 @@ class Register(Resource):
     """
     User Registration Resource
     """
+    @api.doc(responses={
+        200: 'Successfully registered.',
+        201: 'User already exists. Please Log in.',
+        500: 'An Internal Server Error Occurred.'
+    })
+    @api.marshal_with(status_message_token_model)
     def post(self):
         post_data = usr_pwd_parser.parse_args()
 
@@ -51,14 +90,14 @@ class Register(Resource):
                     'message': 'Successfully registered.',
                     'auth_token': auth_token.decode()
                 }
-                return response_object, 201
+                return response_object, 200
 
             else:
                 response_object = {
                     'status': 'fail',
                     'message': 'User already exists. Please Log in.',
                 }
-                return response_object, 202
+                return response_object, 201
 
         except Exception:
             logger.error('An error occurred registering a user', exc_info=True)
@@ -76,6 +115,12 @@ class Login(Resource):
     """
     User Login Resource
     """
+    @api.doc(responses={
+        200: 'Successfully logged in.',
+        404: 'User does not exist.',
+        500: 'An Internal Server Error Occurred.'
+    })
+    @api.marshal_with(status_message_token_model)
     def post(self):
         # get the post data
         post_data = usr_pwd_parser.parse_args()
@@ -121,6 +166,12 @@ class Status(Resource):
     """
     User Status Resource
     """
+    @api.doc(responses={
+        200: 'Successfully logged in.',
+        401: 'The token is blacklisted, invalid, or the signature expired.',
+        500: 'An Internal Server Error Occurred.'
+    })
+    @api.marshal_with(status_message_data_model)
     def get(self):
         # get the auth token
         auth_header = token_parser.parse_args()
@@ -136,7 +187,7 @@ class Status(Resource):
                     'status': 'success',
                     'data': {
                         'username': user.username,
-                        'registered_on': user.registered_on.isoformat()
+                        'registered_on': user.registered_on
                     }
                 }
                 return response_object, 200
@@ -163,6 +214,12 @@ class Logout(Resource):
     """
     Logout Resource
     """
+    @api.doc(responses={
+        200: 'Successfully logged out.',
+        401: 'The token is already blacklisted, invalid, or the signature expired.',
+        500: 'An Internal Server Error Occurred.'
+    })
+    @api.marshal_with(status_message_model)
     def post(self):
         # get auth token
         auth_header = token_parser.parse_args()
