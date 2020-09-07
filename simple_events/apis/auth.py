@@ -1,4 +1,3 @@
-from flask import request, make_response, jsonify
 from flask_restx import Namespace, Resource, reqparse
 
 from simple_events.models.db import db, bcrypt
@@ -171,7 +170,7 @@ class Logout(Resource):
 
         try:
             resp = User.decode_auth_token(auth_token)
-            
+
             if not isinstance(resp, str):
                 # mark the token as blacklisted
                 blacklist_token = BlacklistToken(token=auth_token)
