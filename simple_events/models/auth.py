@@ -6,7 +6,7 @@ from simple_events.core.utils import get_config
 from simple_events.models.db import db, bcrypt
 
 
-AUTH_TOKEN_EXPIRY_SECONDS = os.environ.get('AUTH_TOKEN_EXPIRY_SECONDS', 5)
+AUTH_TOKEN_EXPIRY_SECONDS = int(os.environ.get('AUTH_TOKEN_EXPIRY_SECONDS', 5))
 
 app_config = get_config()
 
