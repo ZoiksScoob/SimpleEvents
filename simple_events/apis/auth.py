@@ -25,13 +25,13 @@ class Register(Resource):
         try:
             # check if user already exists
             user = User.query.filter_by(
-                username=post_data.get('username')).first()
+                username=post_data['username']).first()
 
             if not user:
                 try:
                     user = User(
-                        username=post_data.get('username'),
-                        password=post_data.get('password')
+                        username=post_data['username'],
+                        password=post_data['password']
                     )
                     # insert the user
                     db.session.add(user)
