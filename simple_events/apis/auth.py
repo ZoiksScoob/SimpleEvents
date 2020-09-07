@@ -9,8 +9,11 @@ api = Namespace('auth', description='User Authentication & Tokens')
 
 # Models
 usr_pwd_parser = reqparse.RequestParser(bundle_errors=True)
-usr_pwd_parser.add_argument('username', required=True)
-usr_pwd_parser.add_argument('password', required=True)
+usr_pwd_parser.add_argument('username', required=True, location='json')
+usr_pwd_parser.add_argument('password', required=True, location='json')
+
+token_parser = reqparse.RequestParser()
+token_parser.add_argument('Authorization', required=True, location='headers')
 
 
 @api.route('/register')
