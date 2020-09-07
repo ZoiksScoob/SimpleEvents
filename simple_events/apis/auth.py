@@ -169,7 +169,7 @@ class Logout(Resource):
         auth_header = token_parser.parse_args()
         auth_token = auth_header['Authorization']
 
-        if auth_token:
+        try:
             resp = User.decode_auth_token(auth_token)
             if not isinstance(resp, str):
                 # mark the token as blacklisted
@@ -195,9 +195,10 @@ class Logout(Resource):
                     'message': resp
                 }
                 return make_response(jsonify(responseObject)), 401
-        else:
-            responseObject = {
+
+        except Exception as e:
+            response_object = {
                 'status': 'fail',
-                'message': 'Provide a valid auth token.'
+                'message': 'An Internal Server Error Occurred.'
             }
-            return make_response(jsonify(responseObject)), 403
+            return response_object, 500
