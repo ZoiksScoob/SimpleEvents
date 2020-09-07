@@ -109,21 +109,19 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(data['data']['username'] == 'dummy_username')
             self.assertEqual(response.status_code, 200)
 
-    def test_user_status_malformed_bearer_token(self):
+    def test_user_status_invalid_token(self):
         """ Test for user status with malformed bearer token"""
         with self.client:
             resp_register = register_user(self, 'dummy_username', '123456')
             response = self.client.get(
                 '/auth/status',
                 headers=dict(
-                    Authorization=json.loads(
-                        resp_register.data.decode()
-                    )['auth_token']
+                    Authorization='Some nonsense'
                 )
             )
             data = json.loads(response.data.decode())
             self.assertTrue(data['status'] == 'fail')
-            self.assertTrue(data['message'] == 'Bearer token malformed.')
+            self.assertTrue(data['message'] == 'Invalid token. Please log in again.')
             self.assertEqual(response.status_code, 401)
 
     def test_valid_logout(self):
