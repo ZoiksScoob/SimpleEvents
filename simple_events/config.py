@@ -9,7 +9,7 @@ database_path = os.path.join(basedir, database_name)
 
 class BaseConfig:
     """Base configuration."""
-    SECRET_KEY = os.getenv('SECRET_KEY', 'not_so_secret_secret_key')
+    SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = False
     BCRYPT_LOG_ROUNDS = 13
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -35,7 +35,6 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     """Production configuration."""
-    SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = sqlite_local_base + database_path
 
