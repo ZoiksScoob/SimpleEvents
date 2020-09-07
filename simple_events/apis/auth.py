@@ -28,11 +28,11 @@ class Register(Resource):
             post_data = request.json
 
             if not post_data:
-                responseObject = {
+                response_object = {
                         'status': 'fail',
                         'message': "Unable to retrieve json payload. Please ensure header {'Content-Type': 'application/json'} is included in your request."
                     }
-                return responseObject, 401
+                return response_object, 401
 
             # check if user already exists
             user = User.query.filter_by(
@@ -49,31 +49,30 @@ class Register(Resource):
                     db.session.commit()
                     # generate the auth token
                     auth_token = user.encode_auth_token(user.id)
-                    responseObject = {
+                    response_object = {
                         'status': 'success',
                         'message': 'Successfully registered.',
                         'auth_token': auth_token.decode()
                     }
-                    return responseObject, 201
+                    return response_object, 201
                 except Exception as e:
-                    responseObject = {
+                    response_object = {
                         'status': 'fail',
                         'message': 'Some error occurred. Please try again.'
                     }
-                    return responseObject, 501
+                    return response_object, 501
             else:
-                responseObject = {
+                response_object = {
                     'status': 'fail',
                     'message': 'User already exists. Please Log in.',
                 }
-                return responseObject, 202
+                return response_object, 202
         except:
-            responseObject = {
+            response_object = {
                 'status': 'fail',
                 'message': 'An Internal Server Error Occurred.',
             }
-            return responseObject, 500
-
+            return response_object, 500
 
 
 @api.route('/login')
