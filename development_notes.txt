@@ -61,3 +61,18 @@ Series of actions:
 
 Change of plan, the specifications can be met by building a web app following
 flasks tutorial and amending it as needed.
+
+------------------------------------------------------------------------------------------------------------------------
+
+Reread brief and see that what I was doing was not quite what was asked.
+
+Reading around, there is a tutorial which talks about token based authentication.
+The solution is understandable, so I will follow this, make some major changes accoridng to what
+the tutorial is describing. There is a lot of example code, so I will use this as it's faster to 
+make sure I understand and copy rather than write from scratch.
+
+The main thing to make after this point is to get a single view which requires a token and have that
+return the requested data. The easiest would be a list of all events.
+
+Once the api has all the endpoints it needs, I then need to work on a frontend. 
+I am familiar with plotly dash, that's easy enough to get up and running.
