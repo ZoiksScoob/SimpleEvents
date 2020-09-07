@@ -34,7 +34,7 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     """Production configuration."""
-    SECRET_KEY = 'not_so_secret_secret_key'
+    SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = sqlite_local_base + database_path
 
