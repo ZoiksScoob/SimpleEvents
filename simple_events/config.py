@@ -10,6 +10,7 @@ class BaseConfig:
     DEBUG = False
     BCRYPT_LOG_ROUNDS = 13
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    RESTPLUS_VALIDATE = True
 
 
 class DevelopmentConfig(BaseConfig):
