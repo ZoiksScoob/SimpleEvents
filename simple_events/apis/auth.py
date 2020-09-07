@@ -78,11 +78,9 @@ class Login(Resource):
             # fetch the user data
             user = User.query.filter_by(username=post_data['username']).first()
 
-            passwords_match = bcrypt.check_password_hash(
+            if user and bcrypt.check_password_hash(
                 pw_hash=user.password, password=post_data['password']
-            )
-
-            if user and passwords_match:
+            ):
                 auth_token = user.encode_auth_token(user.id)
 
                 if auth_token:
