@@ -4,7 +4,7 @@ from flask_uuid import FlaskUUID
 
 from simple_events.apis import api
 from simple_events.models.db import db, bcrypt
-from simple_events.utils.helpers import get_app_settings
+from simple_events.core.utils import get_app_settings
 
 
 app = Flask(__name__, instance_relative_config=True)

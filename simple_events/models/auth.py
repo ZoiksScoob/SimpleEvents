@@ -1,7 +1,7 @@
 import jwt
 import datetime
 
-from simple_events.utils.helpers import get_config
+from simple_events.core.utils import get_config
 from simple_events.models.db import db, bcrypt
 
 
