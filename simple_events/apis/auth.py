@@ -1,5 +1,5 @@
 from flask import request, make_response, jsonify
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, reqparse
 
 from simple_events.models.db import db, bcrypt
 from simple_events.models.auth import User, BlacklistToken
@@ -8,32 +8,21 @@ from simple_events.models.auth import User, BlacklistToken
 api = Namespace('auth', description='User Authentication & Tokens')
 
 # Models
-username_password_model = api.model('Register', {
-    'username': fields.String(required=True),
-    'password': fields.String(required=True),
-})
+usr_pwd_parser = reqparse.RequestParser(bundle_errors=True)
+usr_pwd_parser.add_argument('username', required=True)
+usr_pwd_parser.add_argument('password', required=True)
 
 
 @api.route('/register')
+@api.expect(usr_pwd_parser)
 class Register(Resource):
     """
     User Registration Resource
     """
-
-    @api.doc('register_user')
-    @api.expect(username_password_model)
     def post(self):
+        post_data = usr_pwd_parser.parse_args()
+
         try:
-            # get the post data
-            post_data = request.json
-
-            if not post_data:
-                response_object = {
-                        'status': 'fail',
-                        'message': "Unable to retrieve json payload. Please ensure header {'Content-Type': 'application/json'} is included in your request."
-                    }
-                return response_object, 401
-
             # check if user already exists
             user = User.query.filter_by(
                 username=post_data.get('username')).first()
