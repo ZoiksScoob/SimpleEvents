@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_uuid import FlaskUUID
+from flask_migrate import Migrate
 
 from simple_events.apis import api
 from simple_events.models.db import db, bcrypt
@@ -24,6 +25,8 @@ bcrypt.init_app(app)
 
 # Initialise API
 api.init_app(app)
+
+migrate = Migrate(app, db)
 
 if __name__ == '__main__':
     app.run(debug=True)

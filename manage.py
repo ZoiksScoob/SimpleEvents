@@ -3,7 +3,7 @@ import unittest
 import coverage
 
 from flask_script import Manager
-from flask_migrate import Migrate, MigrateCommand
+from flask_migrate import MigrateCommand
 
 from simple_events.app import app
 from simple_events.models.db import db
@@ -20,7 +20,6 @@ COV = coverage.coverage(
 
 COV.start()
 
-migrate = Migrate(app, db)
 manager = Manager(app)
 
 # migrations
