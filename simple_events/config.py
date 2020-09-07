@@ -22,6 +22,7 @@ class DevelopmentConfig(BaseConfig):
     BCRYPT_LOG_ROUNDS = 4
     SQLALCHEMY_DATABASE_URI = sqlite_local_base + database_path
 
+
 class TestingConfig(BaseConfig):
     """Testing configuration."""
     DEBUG = True
