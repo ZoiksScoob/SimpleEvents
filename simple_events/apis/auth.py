@@ -182,19 +182,19 @@ class Logout(Resource):
                         'status': 'success',
                         'message': 'Successfully logged out.'
                     }
-                    return make_response(jsonify(response_object)), 200
+                    return response_object, 200
                 except Exception as e:
                     response_object = {
                         'status': 'fail',
                         'message': e
                     }
-                    return make_response(jsonify(response_object)), 200
+                    return response_object, 200
             else:
                 response_object = {
                     'status': 'fail',
                     'message': resp
                 }
-                return make_response(jsonify(response_object)), 401
+                return response_object, 401
 
         except Exception as e:
             response_object = {
