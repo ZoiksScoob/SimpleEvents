@@ -16,31 +16,48 @@ api = Namespace('event', description='All Things Event Related')
 
 
 # Custom types
-def ticket_int_type(value):
+def natural_num_type(value):
     if isinstance(value, int) and value >= 1:
         return value
     raise ValueError('initial_number_of_tickets must be an integer >= 1.')
 
-ticket_int_type.__schema__ = {'type': 'integer', 'format': 'my-custom-ticket-int'}
+natural_num_type.__schema__ = {'type': 'integer', 'format': 'my-custom-natural-num'}
 
 # Parser
 create_event_parser = token_parser.copy()
 create_event_parser.add_argument('name', required=True, location='json')
-create_event_parser.add_argument('initial_number_of_tickets', type=ticket_int_type, required=True, location='json')
+create_event_parser.add_argument(
+    'initial_number_of_tickets',
+    type=natural_num_type,
+    required=True,
+    location='json')
 
 event_status_parser = token_parser.copy()
 
 event_download_parser = token_parser.copy()
 
-#Models
+event_add_parser = token_parser.copy()
+event_add_parser.add_argument(
+    'additionalNumberOfTickets',
+    type=natural_num_type,
+    required=True,
+    location='json')
+
+# Models
 event_create_model = api.inherit('EventCreateData', status_message_model, {
-    'eventIdentifier': fields.String(required=True, description='The unique identifier of the event.')
+    'eventIdentifier': fields.String(
+        required=True,
+        description='The unique identifier of the event.')
 })
 
 status_data_model = api.model('EventStatusData', {
     'name': fields.String(required=True, description='Name of the event.'),
-    'number_of_tickets': fields.Integer(required=True, description='The total number of tickets of the event.'),
-    'number_of_redeemed_tickets': fields.Integer(required=True, description='The number of redeemed tickets of the event.')
+    'number_of_tickets': fields.Integer(
+        required=True,
+        description='The total number of tickets of the event.'),
+    'number_of_redeemed_tickets': fields.Integer(
+        required=True,
+        description='The number of redeemed tickets of the event.')
 })
 
 event_status_model = api.inherit('StatusDataModel', status_message_model, {
@@ -52,7 +69,8 @@ download_data_model = api.model('EventDowloadData', {
         fields.String(required=True, description='ticketIdentifier.'),
         required=True,
         description='List of ticketIdentifiers.'
-)})
+        )}
+    )
 
 event_dowload_model = api.inherit('EventDowloadModel', status_message_model, {
     'data': fields.Nested(download_data_model, required=True)
