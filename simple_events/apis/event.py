@@ -65,7 +65,7 @@ event_status_model = api.inherit('StatusDataModel', status_message_model, {
 })
 
 download_data_model = api.model('EventDowloadData', {
-    'eventIdentifiers': fields.List(
+    'ticketIdentifiers': fields.List(
         fields.String(required=True, description='ticketIdentifier.'),
         required=True,
         description='List of ticketIdentifiers.'
@@ -146,6 +146,7 @@ class Status(Resource):
         200: 'Successfully retrieved event status.',
         400: 'Bad Request',
         401: 'The token is blacklisted, invalid, or the signature expired.',
+        402: 'Invalid eventIdentifier.',
         500: 'An Internal Server Error Occurred.'
     })
     @api.marshal_with(event_status_model)
@@ -157,6 +158,14 @@ class Status(Resource):
             resp = User.decode_auth_token(params['Authorization'])
 
             if not isinstance(resp, str):
+                event = Event.query.filter_by(guid=eventIdentifier.bytes).first()
+
+                if not event:
+                    response_object = {
+                        'status': 'fail',
+                        'message': 'Invalid eventIdentifier.'
+                        }
+                    return response_object, 402
 
                 result = db.session.query(
                             Event.name.label('name'),
@@ -241,7 +250,7 @@ class Download(Resource):
                     'status': 'success',
                     'message': 'Successfully downloaded unredeemed event tickets.',
                     'data': {
-                        'eventIdentifiers': ticket_identifiers
+                        'ticketIdentifiers': ticket_identifiers
                     }}
                 return response_object, 200
 

@@ -167,12 +167,12 @@ class TestEvent(TestEventBlueprint):
             self.assertEqual(download_response.status_code, 200)
             self.assertEqual(download_data['status'], 'success')
             self.assertTrue(download_data['data'])
-            self.assertTrue(isinstance(download_data['data']['eventIdentifiers'], list))
-            self.assertEqual(len(download_data['data']['eventIdentifiers']), 2)
+            self.assertTrue(isinstance(download_data['data']['ticketIdentifiers'], list))
+            self.assertEqual(len(download_data['data']['ticketIdentifiers']), 2)
             self.assertEqual(download_response.content_type, 'application/json')
 
             eventIdentifier = uuid.UUID(event_data["eventIdentifier"])
-            ticketIdentifiers = [uuid.UUID(id_).bytes for id_ in download_data['data']['eventIdentifiers']]
+            ticketIdentifiers = [uuid.UUID(id_).bytes for id_ in download_data['data']['ticketIdentifiers']]
 
             tickets = db.session.query(
                     db.func.count(Ticket.id).label('n')
@@ -222,6 +222,79 @@ class TestEvent(TestEventBlueprint):
         status_data = json.loads(status_response.data.decode())
 
         self.assertEqual(status_data['data']['number_of_tickets'], 5)
+
+
+class TestTicket(TestEventBlueprint):
+    def test_redeem_a_ticket(self):
+        """ Test redeeming a ticket """
+        # Make user
+        reg_response = self.register_user('dummy_username', '12345678')
+
+        auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
+
+        # Make event
+        event_response = self.create_event(
+            name='test',
+            initial_number_of_tickets=2,
+            auth_token=auth_token)
+
+        event_data = json.loads(event_response.data.decode())
+
+        # Get ticket ids
+        download_response = self.client.get(
+                f'event/download/{event_data["eventIdentifier"]}',
+                content_type='application/json',
+                headers=dict(Authorization=auth_token)
+            )
+
+        download_data = json.loads(download_response.data.decode())
+
+        ticketIdentifier = download_data['data']['ticketIdentifiers'][0]
+
+        # Redeem
+        redeem_response = self.client.get(
+                f'/redeem/{ticketIdentifier}',
+                content_type='application/json',
+            )
+
+        self.assertTrue(redeem_response.status_code, 200)
+
+        # See the unredeemed tickets
+        download_response = self.client.get(
+                f'event/download/{event_data["eventIdentifier"]}',
+                content_type='application/json',
+                headers=dict(Authorization=auth_token)
+            )
+
+        download_data = json.loads(download_response.data.decode())
+
+        ticketIdentifiers = download_data['data']['ticketIdentifiers']
+
+        self.assertEqual(len(ticketIdentifiers), 1)
+        self.assertTrue(ticketIdentifier not in ticketIdentifiers)
+
+        # Check you can't redeem again
+        redeem_response = self.client.get(
+                f'/redeem/{ticketIdentifier}',
+                content_type='application/json',
+            )
+
+        self.assertTrue(redeem_response.status_code, 410)
+
+        # Check no other ticket has been accidentally redeemed
+        download_response = self.client.get(
+                f'event/download/{event_data["eventIdentifier"]}',
+                content_type='application/json',
+                headers=dict(Authorization=auth_token)
+            )
+
+        download_data = json.loads(download_response.data.decode())
+
+        ticketIdentifiers = download_data['data']['ticketIdentifiers']
+
+        self.assertEqual(len(ticketIdentifiers), 1)
+        self.assertTrue(ticketIdentifier not in ticketIdentifiers)
+
 
 
 if __name__ == '__main__':
