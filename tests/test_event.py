@@ -28,12 +28,6 @@ class TestEvent(TestEventBlueprint):
             start_time = datetime.utcnow()
 
             reg_response = self.register_user('dummy_username', '12345678')
-            reg_data = json.loads(reg_response.data.decode())
-            self.assertTrue(reg_data['status'] == 'success')
-            self.assertTrue(reg_data['message'] == 'Successfully registered.')
-            self.assertTrue(reg_data['auth_token'])
-            self.assertTrue(reg_response.content_type == 'application/json')
-            self.assertEqual(reg_response.status_code, 200)
 
             auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
 
@@ -102,7 +96,7 @@ class TestEvent(TestEventBlueprint):
 
             self.assertEqual(event_response.status_code, 400)
             self.assertTrue(event_data['errors'])
-            
+
             self.assertEqual(event_data['message'], 'Input payload validation failed')
             self.assertEqual(event_data['errors']['initial_number_of_tickets'], 'initial_number_of_tickets must be an integer >= 1.')
             self.assertEqual(event_response.content_type, 'application/json')
@@ -114,6 +108,35 @@ class TestEvent(TestEventBlueprint):
             tickets = Ticket.query.all()
 
             self.assertFalse(tickets)
+
+    def test_checking_status_of_event(self):
+        with self.client:
+            reg_response = self.register_user('dummy_username', '12345678')
+
+            auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
+
+            event_response = self.create_event(
+                name='test',
+                initial_number_of_tickets=2,
+                auth_token=auth_token)
+
+            event_data = json.loads(event_response.data.decode())
+
+            status_response = self.client.get(
+                f'event/status/{event_data["eventIdentifier"]}',
+                content_type='application/json',
+                headers=dict(Authorization=auth_token)
+            )
+
+            status_data = json.loads(status_response.data.decode())
+
+            self.assertEqual(status_response.status_code, 200)
+            self.assertEqual(status_data['status'], 'success')
+            self.assertTrue(status_data['data'])
+            self.assertEqual(status_data['data']['name'], 'test')
+            self.assertEqual(status_data['data']['number_of_tickets'], 2)
+            self.assertEqual(status_data['data']['number_of_redeemed_tickets'], 0)
+            self.assertEqual(status_response.content_type, 'application/json')
 
 
 if __name__ == '__main__':
