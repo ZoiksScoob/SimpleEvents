@@ -1,7 +1,7 @@
 import logging
 from flask_restx import Namespace, Resource, fields, reqparse
 
-from simple_events.models.db import db, bcrypt
+from simple_events.models import db, bcrypt
 from simple_events.models.auth import User, BlacklistToken
 
 # Get logger
@@ -10,15 +10,33 @@ logger = logging.getLogger(__name__)
 # Namespace
 api = Namespace('auth', description='User Authentication & Tokens')
 
+
+# Custom types
+def username_type(value):
+    if isinstance(value, str) and 1 <= len(value) <= 255:
+        return value
+    raise ValueError('Username must be between 1 and 255 characters long.')
+
+
+def password_type(value):
+    if isinstance(value, str) and 8 <= len(value) <= 255:
+        return value
+    raise ValueError('Password must be between 8 and 255 characters long.')
+
+
 # Parsers
 usr_pwd_parser = reqparse.RequestParser(bundle_errors=True)
-usr_pwd_parser.add_argument('username', required=True, location='json')
-usr_pwd_parser.add_argument('password', required=True, location='json')
+usr_pwd_parser.add_argument('username', type=username_type, required=True, location='json')
+usr_pwd_parser.add_argument('password', type=password_type, required=True, location='json')
 
 token_parser = reqparse.RequestParser()
 token_parser.add_argument('Authorization', required=True, location='headers')
 
 # Models
+errors_field = api.model('Error', {
+    '*': fields.Wildcard(fields.String)
+})
+
 status_message_model = api.model('StatusMessage', {
     'status': fields.String(
         required=True,
@@ -27,28 +45,29 @@ status_message_model = api.model('StatusMessage', {
     'message': fields.String(
         required=True,
         description='Message from the server giving more detail on the status of the request.'
-        )
+        ),
+    'errors': fields.Nested(errors_field, required=False)
 })
 
 status_message_token_model = api.inherit('StatusMessageToken', status_message_model, {
     'auth_token': fields.String(
         required=False,
-        description='A signed authorisation token.'
+        description='A signed authorisation token.',
         )
 })
 
 data_fields = api.model('UserInfo', {
     'username': fields.String(
-        required=True, 
+        required=True,
         description='Username.'),
-    'registered_on': fields.DateTime(
+    'registered_on_utc': fields.DateTime(
         required=True,
         description='Date & time of when the user was registered.'
     )
 })
 
 status_message_data_model = api.inherit('StatusMessageData', status_message_model, {
-    'data': fields.Nested(data_fields)
+    'data': fields.Nested(data_fields, required=False)
 })
 
 
@@ -61,6 +80,7 @@ class Register(Resource):
     @api.doc(responses={
         200: 'Successfully registered.',
         201: 'User already exists. Please Log in.',
+        400: 'Bad Request',
         500: 'An Internal Server Error Occurred.'
     })
     @api.marshal_with(status_message_token_model)
@@ -117,6 +137,7 @@ class Login(Resource):
     """
     @api.doc(responses={
         200: 'Successfully logged in.',
+        400: 'Bad Request',
         404: 'User does not exist.',
         500: 'An Internal Server Error Occurred.'
     })
@@ -168,6 +189,7 @@ class Status(Resource):
     """
     @api.doc(responses={
         200: 'Successfully logged in.',
+        400: 'Bad Request',
         401: 'The token is blacklisted, invalid, or the signature expired.',
         500: 'An Internal Server Error Occurred.'
     })
@@ -187,7 +209,7 @@ class Status(Resource):
                     'status': 'success',
                     'data': {
                         'username': user.username,
-                        'registered_on': user.registered_on
+                        'registered_on_utc': user.registered_on_utc
                     }
                 }
                 return response_object, 200
@@ -216,6 +238,7 @@ class Logout(Resource):
     """
     @api.doc(responses={
         200: 'Successfully logged out.',
+        400: 'Bad Request',
         401: 'The token is already blacklisted, invalid, or the signature expired.',
         500: 'An Internal Server Error Occurred.'
     })

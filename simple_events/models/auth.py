@@ -1,12 +1,7 @@
-import os
 import jwt
 import datetime
 
-from simple_events.core.utils import get_config
 from simple_events.models.db import db, bcrypt
-
-
-app_config = get_config()
 
 
 class User(db.Model):
@@ -16,7 +11,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    registered_on = db.Column(db.DateTime, nullable=False)
+    registered_on_utc = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, username, password):
         from simple_events.app import app
@@ -24,7 +19,7 @@ class User(db.Model):
         self.username = username
         self.password = bcrypt.generate_password_hash(
             password, app.config['BCRYPT_LOG_ROUNDS']).decode()
-        self.registered_on = datetime.datetime.now()
+        self.registered_on_utc = datetime.datetime.utcnow()
 
     def encode_auth_token(self, user_id):
         """
@@ -77,11 +72,11 @@ class BlacklistToken(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     token = db.Column(db.String(500), unique=True, nullable=False)
-    blacklisted_on = db.Column(db.DateTime, nullable=False)
+    blacklisted_on_utc = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, token):
         self.token = token
-        self.blacklisted_on = datetime.datetime.now()
+        self.blacklisted_on_utc = datetime.datetime.utcnow()
 
     def __repr__(self):
         return f'<id: token: {self.token}'

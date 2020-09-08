@@ -11,7 +11,7 @@ from flask_uuid import FlaskUUID
 from flask_migrate import Migrate
 
 from simple_events.apis import api
-from simple_events.models.db import db, bcrypt
+from simple_events.models import db, bcrypt
 from simple_events.core.utils import get_app_settings
 
 
