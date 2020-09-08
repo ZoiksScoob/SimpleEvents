@@ -1,6 +1,6 @@
 import logging
 import uuid
-from flask_restx import Namespace, Resource, fields, reqparse
+from flask_restx import Namespace, Resource, fields
 
 from simple_events.models import db
 from simple_events.models.auth import User
