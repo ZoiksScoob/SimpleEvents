@@ -10,10 +10,24 @@ logger = logging.getLogger(__name__)
 # Namespace
 api = Namespace('auth', description='User Authentication & Tokens')
 
+
+# Custom types
+def username_type(value):
+    if isinstance(value, str) and 1 <= len(value) <= 255:
+        return value
+    raise ValueError('Username must be between 1 and 255 characters long.')
+
+
+def password_type(value):
+    if isinstance(value, str) and 8 <= len(value) <= 255:
+        return value
+    raise ValueError('Password must be between 8 and 255 characters long.')
+
+
 # Parsers
 usr_pwd_parser = reqparse.RequestParser(bundle_errors=True)
-usr_pwd_parser.add_argument('username', required=True, location='json')
-usr_pwd_parser.add_argument('password', required=True, location='json')
+usr_pwd_parser.add_argument('username', type=username_type, required=True, location='json')
+usr_pwd_parser.add_argument('password', type=password_type, required=True, location='json')
 
 token_parser = reqparse.RequestParser()
 token_parser.add_argument('Authorization', required=True, location='headers')
