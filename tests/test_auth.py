@@ -42,8 +42,19 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(response.content_type == 'application/json')
             self.assertEqual(response.status_code, 200)
 
+    def test_registration_with_too_short_password(self):
+        """ Test for user registration with too a short password """
+        with self.client:
+            response = register_user(self, 'dummy_username', '123456')
+            data = json.loads(response.data.decode())
+            self.assertTrue(data['message'] == "Input payload validation failed")
+            self.assertTrue(data['errors'])
+            self.assertTrue(data['errors']['password'] == "Password must be between 8 and 255 characters long.")
+            self.assertTrue(response.content_type == 'application/json')
+            self.assertEqual(response.status_code, 400)
+
     def test_registered_with_already_registered_user(self):
-        """ Test registration with already registered username"""
+        """ Test registration with already registered username """
         user = User(
             username='dummy_username',
             password='test'
