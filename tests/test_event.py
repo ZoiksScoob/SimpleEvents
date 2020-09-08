@@ -187,6 +187,42 @@ class TestEvent(TestEventBlueprint):
 
             self.assertEqual(tickets.n, 2)
 
+    def test_adding_tickets_to_event(self):
+        """ Test adding tickets to an event """
+        reg_response = self.register_user('dummy_username', '12345678')
+
+        auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
+
+        event_response = self.create_event(
+            name='test',
+            initial_number_of_tickets=2,
+            auth_token=auth_token)
+
+        event_data = json.loads(event_response.data.decode())
+
+        add_response = self.client.put(
+            f'event/add/{event_data["eventIdentifier"]}',
+            content_type='application/json',
+            headers=dict(Authorization=auth_token),
+            data=json.dumps(dict(additionalNumberOfTickets=3)),
+        )
+
+        add_data = json.loads(add_response.data.decode())
+
+        self.assertEqual(add_response.status_code, 200)
+        self.assertEqual(add_response.content_type, 'application/json')
+        self.assertEqual(add_data['status'], 'success')
+
+        status_response = self.client.get(
+            f'event/status/{event_data["eventIdentifier"]}',
+            content_type='application/json',
+            headers=dict(Authorization=auth_token)
+        )
+
+        status_data = json.loads(status_response.data.decode())
+
+        self.assertEqual(status_data['data']['number_of_tickets'], 5)
+
 
 if __name__ == '__main__':
     unittest.main()
