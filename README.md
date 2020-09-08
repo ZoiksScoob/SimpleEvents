@@ -1,21 +1,37 @@
 # SimpleEvents
 A simple Event &amp; Ticket management web application
 
+These instructions assume you've pulled the lastest version of the respository.
 
-### Running the SimpleEvents Application
 
-Before running a secret key must be set in the environment, the environment variable that's expected is `SECRET_KEY`.
+## 1. Running The SimpleEvents Application
+
+#### 1.1. Creating The Database
+
+Before running the server, the database needs to be setup. This is done using the Flask-Migrate extension. If there is already a database called `simple_events.db` in the `simple_events` folder then just the 2nd command needs of the below should be run to ensure the database is up to date, otherwise both of the below commands should be run in order in the command line:
+
+    `python manage.py db init`
+
+    `python manage.py db upgrade`
+
+
+#### 1.2. Setting The Environment Variables
+
+Then a secret key must be set in the environment, the environment variable that's expected is `SECRET_KEY`.
 
 An optional environment variable is `AUTH_TOKEN_EXPIRY_SECONDS`, which sets how long tokens have before expiring. The defaults for which are set in the `config.py` file.
+
+
+#### 1.3. Running
 
 Once you've set the environment variables, the server can be run simply using the manager like so
 
     `python manage.py runserver`
 
 
-### Developing SimpleEvents
+## 2. Developing SimpleEvents
 
-#### Setting Up A Virtual Environment
+#### 2.1. Setting Up A Virtual Environment
 
 The required packages for this application to run are given in `requirements.txt`. An example of how to setup a virtual environment using `virtualenv` for this application is as follows:
 
@@ -32,20 +48,7 @@ The required packages for this application to run are given in `requirements.txt
     `pip install -r requirements.txt`
 
 
-#### Readying The Application For Running
-
-Before running the server, the database needs to be setup. This is done using the Flask-Migrate extension. The commands to execute in order are
-
-    `python manage.py db init`
-
-    `python manage.py db upgrade`
-
-Once this is done, and the database is created (in the simple_events folder), the application can be started with the following command
-
-    `python manage.py runserver`
-
-
-#### Making Database Schema Changes
+#### 2.2. Making Database Schema Changes
 
 As the database is version controlled, each logically related set of changes to the database can be saved using the following command
 
