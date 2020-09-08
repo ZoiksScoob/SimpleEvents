@@ -252,11 +252,59 @@ class Download(Resource):
             return response_object, 500
 
 
-@api.route('/add')
-class Download(Resource):
+@api.route('/add/<uuid:eventIdentifier>')
+@api.expect(event_add_parser)
+class Add(Resource):
     """
-    Event Download Resource
+    Event Add Resource
     """
+    @api.doc(responses={
+        200: 'Successfully added tickets to event.',
+        400: 'Bad Request',
+        401: 'The token is blacklisted, invalid, or the signature expired.',
+        402: 'Invalid eventIdentifier.',
+        500: 'An Internal Server Error Occurred.'
+    })
     def put(self, eventIdentifier):
         """Add more tickets to an existing event"""
-        pass
+        params = event_add_parser.parse_args()
+
+        try:
+            resp = User.decode_auth_token(params['Authorization'])
+
+            if not isinstance(resp, str):
+                event = Event.query.filter_by(guid=eventIdentifier.bytes).first()
+
+                if not event:
+                    response_object = {
+                        'status': 'fail',
+                        'message': 'Invalid eventIdentifier.'
+                        }
+                    return response_object, 402
+
+                tickets = (Ticket(author_id=resp, event_id=event.id)
+                           for _ in range(params['additionalNumberOfTickets']))
+
+                db.session.add_all(tickets)
+                db.session.commit()
+
+                response_object = {
+                    'status': 'success',
+                    'message': f'Successfully added {params["additionalNumberOfTickets"]} event tickets.',
+                }
+                return response_object, 200
+
+            response_object = {
+                'status': 'fail',
+                'message': resp
+                }
+            return response_object, 401
+
+        except Exception:
+            logger.error('An error occurred creating an event.', exc_info=True)
+
+            response_object = {
+                'status': 'fail',
+                'message': 'An Internal Server Error Occurred.',
+            }
+            return response_object, 500
