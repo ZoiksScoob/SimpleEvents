@@ -1,7 +1,7 @@
 from flask_restx import Api
 
 from simple_events.apis.auth import api as ns_auth
-
+from simple_events.apis.event import api as ns_event
 
 api = Api(
     title='Simple Events API',
@@ -11,3 +11,4 @@ api = Api(
 
 # Add namespaces
 api.add_namespace(ns_auth)
+api.add_namespace(ns_event)
