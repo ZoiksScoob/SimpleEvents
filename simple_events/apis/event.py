@@ -204,6 +204,7 @@ class Download(Resource):
         200: 'Successfully downloaded unredeemed event tickets.',
         400: 'Bad Request',
         401: 'The token is blacklisted, invalid, or the signature expired.',
+        402: 'Invalid eventIdentifier.',
         500: 'An Internal Server Error Occurred.'
     })
     @api.marshal_with(event_dowload_model)
@@ -216,15 +217,23 @@ class Download(Resource):
 
             if not isinstance(resp, str):
 
+                event = Event.query.filter_by(guid=eventIdentifier.bytes).first()
+
+                if not event:
+                    response_object = {
+                        'status': 'fail',
+                        'message': 'Invalid eventIdentifier.'
+                        }
+                    return response_object, 402
+
                 result = db.session.query(
                             Ticket.guid.label('guid')
                         )\
-                        .join(Event)\
-                        .filter(db.and_(
-                            Event.guid == eventIdentifier.bytes,
-                            Ticket.is_redeemed == False
-                        ))\
-                        .all()
+                    .filter(db.and_(
+                        Ticket.event_id == event.id,
+                        Ticket.is_redeemed == False # Doesn't select if "is" is used instead of "=="
+                    ))\
+                    .all()
 
                 ticket_identifiers = [str(uuid.UUID(bytes=row.guid)) for row in result]
 
