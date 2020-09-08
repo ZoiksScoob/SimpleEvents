@@ -4,20 +4,20 @@ from flask_restx import Namespace, Resource
 from simple_events.models import db
 from simple_events.models.auth import User
 from simple_events.models.event import Ticket
-from simple_events.apis.auth import status_message_model
+from simple_events.apis.auth import status_message_model, token_parser
 
 
 # Get logger
 logger = logging.getLogger(__name__)
 
 # Namespace
-api = Namespace('', description='All Things Event Related')
+api = Namespace('', description='All Things Ticket Related')
 
 
 @api.route('/redeem/<uuid:ticketIdentifier>')
-class Create(Resource):
+class Redeem(Resource):
     """
-    Event Create Resource
+    Ticket Redeem Resource
     """
     @api.doc(responses={
         200: 'Ok',
@@ -41,7 +41,7 @@ class Create(Resource):
 
             if ticket.is_redeemed:
                 response_object = {
-                    'status': 'fail',
+                    'status': 'success',
                     'message': 'GONE: ticket has already been redeemed.'
                 }
                 return response_object, 410
