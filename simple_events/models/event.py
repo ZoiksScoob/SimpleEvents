@@ -15,7 +15,7 @@ class Event(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     date_created_utc = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
 
-    db.UniqueConstraint('guid', name='uix__event__guid')
+    db.UniqueConstraint(guid, name='uix__event__guid')
 
 
 class Ticket(db.Model):
