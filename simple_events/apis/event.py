@@ -291,6 +291,11 @@ class Add(Resource):
                         }
                     return response_object, 402
 
+                if event.additional_number_of_tickets:
+                    event.additional_number_of_tickets += params['additionalNumberOfTickets']
+                else:
+                    event.additional_number_of_tickets = params['additionalNumberOfTickets']
+
                 tickets = (Ticket(author_id=resp, event_id=event.id)
                            for _ in range(params['additionalNumberOfTickets']))
 
