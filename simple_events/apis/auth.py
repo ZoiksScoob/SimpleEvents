@@ -33,6 +33,10 @@ token_parser = reqparse.RequestParser()
 token_parser.add_argument('Authorization', required=True, location='headers')
 
 # Models
+errors_field = api.model('Error', {
+    '*': fields.Wildcard(fields.String)
+})
+
 status_message_model = api.model('StatusMessage', {
     'status': fields.String(
         required=True,
@@ -41,19 +45,20 @@ status_message_model = api.model('StatusMessage', {
     'message': fields.String(
         required=True,
         description='Message from the server giving more detail on the status of the request.'
-        )
+        ),
+    'errors': fields.Nested(errors_field, required=False)
 })
 
 status_message_token_model = api.inherit('StatusMessageToken', status_message_model, {
     'auth_token': fields.String(
         required=False,
-        description='A signed authorisation token.'
+        description='A signed authorisation token.',
         )
 })
 
 data_fields = api.model('UserInfo', {
     'username': fields.String(
-        required=True, 
+        required=True,
         description='Username.'),
     'registered_on': fields.DateTime(
         required=True,
@@ -62,7 +67,7 @@ data_fields = api.model('UserInfo', {
 })
 
 status_message_data_model = api.inherit('StatusMessageData', status_message_model, {
-    'data': fields.Nested(data_fields)
+    'data': fields.Nested(data_fields, required=False)
 })
 
 
