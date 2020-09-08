@@ -29,18 +29,21 @@ create_event_parser.add_argument('name', required=True, location='json')
 create_event_parser.add_argument('initial_number_of_tickets', type=ticket_int_type, required=True, location='json')
 
 event_status_parser = token_parser.copy()
-event_status_parser.add_argument('eventIdentifier', required=True, location='values')
 
 #Models
 event_create_model = api.inherit('EventCreateData', status_message_model, {
     'eventIdentifier': fields.String(required=True, description='The unique identifier of the event.')
 })
 
-event_status_model = api.inherit('EventStatusData', status_message_model, {
+status_data_model = api.model('StatusDataModel', {
+    'name': fields.String(required=True, description='Name of the event.'),
     'number_of_tickets': fields.Integer(required=True, description='The total number of tickets of the event.'),
     'number_of_redeemed_tickets': fields.Integer(required=True, description='The number of redeemed tickets of the event.')
 })
 
+event_status_model = api.inherit('EventStatusData', status_message_model, {
+    'data': fields.Nested(status_data_model, required=False)
+})
 
 
 @api.route('/create')
@@ -102,14 +105,63 @@ class Create(Resource):
             return response_object, 500
 
 
-@api.route('/<uuid:eventIdentifier>/status')
+@api.route('/status/<uuid:eventIdentifier>')
+@api.expect(event_status_parser)
 class Status(Resource):
     """
     Event Status Resource
     """
+    @api.doc(responses={
+        200: 'Successfully retrieved event status.',
+        400: 'Bad Request',
+        401: 'The token is blacklisted, invalid, or the signature expired.',
+        500: 'An Internal Server Error Occurred.'
+    })
+    @api.marshal_with(event_status_model)
     def get(self, eventIdentifier):
         """Get status of an event"""
-        pass
+        params = event_status_parser.parse_args()
+
+        try:
+            resp = User.decode_auth_token(params['Authorization'])
+
+            if not isinstance(resp, str):
+
+                result = db.session.query(
+                            Event.name.label('name'),
+                            db.func.count(Ticket.id).label('total'),
+                            db.func.sum(Ticket.is_redeemed).label('redeemed')
+                        )\
+                        .join(Event)\
+                        .filter(Event.guid == eventIdentifier.bytes)\
+                        .group_by(Event.name)\
+                        .first()
+
+                response_object = {
+                    'status': 'success',
+                    'message': 'Successfully retrieved event status.',
+                    'data': {
+                        'name': result.name,
+                        'number_of_tickets': result.total,
+                        'number_of_redeemed_tickets': int(result.redeemed)
+                    }}
+                return response_object, 200
+
+            response_object = {
+                'status': 'fail',
+                'message': resp
+                }
+            return response_object, 401
+
+        except Exception:
+            logger.error('An error occurred creating an event.', exc_info=True)
+
+            response_object = {
+                'status': 'fail',
+                'message': 'An Internal Server Error Occurred.',
+            }
+            return response_object, 500
+
 
 
 @api.route('/<uuid:eventIdentifier>/download')
