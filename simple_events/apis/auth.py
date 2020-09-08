@@ -61,6 +61,7 @@ class Register(Resource):
     @api.doc(responses={
         200: 'Successfully registered.',
         201: 'User already exists. Please Log in.',
+        400: 'Bad Request',
         500: 'An Internal Server Error Occurred.'
     })
     @api.marshal_with(status_message_token_model)
@@ -117,6 +118,7 @@ class Login(Resource):
     """
     @api.doc(responses={
         200: 'Successfully logged in.',
+        400: 'Bad Request',
         404: 'User does not exist.',
         500: 'An Internal Server Error Occurred.'
     })
@@ -168,6 +170,7 @@ class Status(Resource):
     """
     @api.doc(responses={
         200: 'Successfully logged in.',
+        400: 'Bad Request',
         401: 'The token is blacklisted, invalid, or the signature expired.',
         500: 'An Internal Server Error Occurred.'
     })
@@ -216,6 +219,7 @@ class Logout(Resource):
     """
     @api.doc(responses={
         200: 'Successfully logged out.',
+        400: 'Bad Request',
         401: 'The token is already blacklisted, invalid, or the signature expired.',
         500: 'An Internal Server Error Occurred.'
     })
