@@ -30,19 +30,32 @@ create_event_parser.add_argument('initial_number_of_tickets', type=ticket_int_ty
 
 event_status_parser = token_parser.copy()
 
+event_download_parser = token_parser.copy()
+
 #Models
 event_create_model = api.inherit('EventCreateData', status_message_model, {
     'eventIdentifier': fields.String(required=True, description='The unique identifier of the event.')
 })
 
-status_data_model = api.model('StatusDataModel', {
+status_data_model = api.model('EventStatusData', {
     'name': fields.String(required=True, description='Name of the event.'),
     'number_of_tickets': fields.Integer(required=True, description='The total number of tickets of the event.'),
     'number_of_redeemed_tickets': fields.Integer(required=True, description='The number of redeemed tickets of the event.')
 })
 
-event_status_model = api.inherit('EventStatusData', status_message_model, {
-    'data': fields.Nested(status_data_model, required=False)
+event_status_model = api.inherit('StatusDataModel', status_message_model, {
+    'data': fields.Nested(status_data_model, required=True)
+})
+
+download_data_model = api.model('EventDowloadData', {
+    'eventIdentifiers': fields.List(
+        fields.String(required=True, description='ticketIdentifier.'),
+        required=True,
+        description='List of ticketIdentifiers.'
+)})
+
+event_dowload_model = api.inherit('EventDowloadModel', status_message_model, {
+    'data': fields.Nested(download_data_model, required=True)
 })
 
 
@@ -163,15 +176,62 @@ class Status(Resource):
             return response_object, 500
 
 
-
-@api.route('/<uuid:eventIdentifier>/download')
+@api.route('/download/<uuid:eventIdentifier>')
+@api.expect(event_download_parser)
 class Download(Resource):
     """
     Event Download Resource
     """
+    @api.doc(responses={
+        200: 'Successfully downloaded unredeemed event tickets.',
+        400: 'Bad Request',
+        401: 'The token is blacklisted, invalid, or the signature expired.',
+        500: 'An Internal Server Error Occurred.'
+    })
+    @api.marshal_with(event_dowload_model)
     def get(self, eventIdentifier):
         """Get download of an events unreemed tickets"""
-        pass
+        params = event_download_parser.parse_args()
+
+        try:
+            resp = User.decode_auth_token(params['Authorization'])
+
+            if not isinstance(resp, str):
+
+                result = db.session.query(
+                            Ticket.guid.label('guid')
+                        )\
+                        .join(Event)\
+                        .filter(db.and_(
+                            Event.guid == eventIdentifier.bytes,
+                            Ticket.is_redeemed == False
+                        ))\
+                        .all()
+
+                ticket_identifiers = [str(uuid.UUID(bytes=row.guid)) for row in result]
+
+                response_object = {
+                    'status': 'success',
+                    'message': 'Successfully downloaded unredeemed event tickets.',
+                    'data': {
+                        'eventIdentifiers': ticket_identifiers
+                    }}
+                return response_object, 200
+
+            response_object = {
+                'status': 'fail',
+                'message': resp
+                }
+            return response_object, 401
+
+        except Exception:
+            logger.error('An error occurred creating an event.', exc_info=True)
+
+            response_object = {
+                'status': 'fail',
+                'message': 'An Internal Server Error Occurred.',
+            }
+            return response_object, 500
 
 
 @api.route('/add')
