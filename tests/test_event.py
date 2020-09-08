@@ -47,11 +47,15 @@ class TestEvent(TestEventBlueprint):
             self.assertEqual(event_response.status_code, 200)
             self.assertEqual(event_data['status'], 'success')
             self.assertEqual(event_data['message'], 'Successfully created event "test".')
+            self.assertTrue(event_data['eventIdentifier'])
             self.assertEqual(event_response.content_type, 'application/json')
 
-            author_id = User.decode_auth_token(auth_token)
+            eventIdentifier = event_data['eventIdentifier']
+            eventIdentifier = uuid.UUID(eventIdentifier)
 
-            event = Event.query.filter_by(id=1).first()
+            event = Event.query.filter_by(guid=eventIdentifier.bytes).first()
+
+            author_id = User.decode_auth_token(auth_token)
 
             self.assertEqual(event.name, 'test')
             self.assertEqual(event.author_id, author_id)
@@ -98,6 +102,7 @@ class TestEvent(TestEventBlueprint):
 
             self.assertEqual(event_response.status_code, 400)
             self.assertTrue(event_data['errors'])
+            
             self.assertEqual(event_data['message'], 'Input payload validation failed')
             self.assertEqual(event_data['errors']['initial_number_of_tickets'], 'initial_number_of_tickets must be an integer >= 1.')
             self.assertEqual(event_response.content_type, 'application/json')
