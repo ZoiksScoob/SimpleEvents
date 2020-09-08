@@ -24,6 +24,7 @@ class TestEventBlueprint(BaseTestCase):
 
 class TestEvent(TestEventBlueprint):
     def test_creating_event(self):
+        """ Test creating an event """
         with self.client:
             start_time = datetime.utcnow()
 
@@ -65,6 +66,7 @@ class TestEvent(TestEventBlueprint):
             self.assertEqual(len(tickets), 5)
 
     def test_creating_event_with_invalid_token(self):
+        """ Test creating an event with an invalid token """
         with self.client:
             event_response = self.create_event(
                 name='test',
@@ -86,6 +88,7 @@ class TestEvent(TestEventBlueprint):
             self.assertFalse(tickets)
 
     def test_creating_event_without_tickets(self):
+        """ Test creating an event with an invalid number of tickets """
         with self.client:
             event_response = self.create_event(
                 name='test',
@@ -110,6 +113,7 @@ class TestEvent(TestEventBlueprint):
             self.assertFalse(tickets)
 
     def test_checking_status_of_event(self):
+        """ Test getting status of an event """
         with self.client:
             reg_response = self.register_user('dummy_username', '12345678')
 
