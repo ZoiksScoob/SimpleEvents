@@ -1,12 +1,7 @@
-import os
 import jwt
 import datetime
 
-from simple_events.core.utils import get_config
 from simple_events.models.db import db, bcrypt
-
-
-app_config = get_config()
 
 
 class User(db.Model):
