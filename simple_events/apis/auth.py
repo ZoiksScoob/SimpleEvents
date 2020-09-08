@@ -1,7 +1,7 @@
 import logging
 from flask_restx import Namespace, Resource, fields, reqparse
 
-from simple_events.models.db import db, bcrypt
+from simple_events.models import db, bcrypt
 from simple_events.models.auth import User, BlacklistToken
 
 # Get logger

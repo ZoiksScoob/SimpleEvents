@@ -1,7 +1,7 @@
 from flask_testing import TestCase
 
 from simple_events.app import app
-from simple_events.models.db import db
+from simple_events.models import db
 
 
 class BaseTestCase(TestCase):

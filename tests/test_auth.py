@@ -2,7 +2,7 @@ import time
 import json
 import unittest
 
-from simple_events.models.db import db
+from simple_events.models import db
 from simple_events.models.auth import User, BlacklistToken
 from tests.base import BaseTestCase
 

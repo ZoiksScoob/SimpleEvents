@@ -1,6 +1,6 @@
 import unittest
 
-from simple_events.models.db import db
+from simple_events.models import db
 from simple_events.models.auth import User
 from tests.base import BaseTestCase
 
