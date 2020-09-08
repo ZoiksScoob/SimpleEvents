@@ -1,4 +1,5 @@
 import logging
+import uuid
 from flask_restx import Namespace, Resource, fields, reqparse
 
 from simple_events.models import db
@@ -27,6 +28,20 @@ create_event_parser = token_parser.copy()
 create_event_parser.add_argument('name', required=True, location='json')
 create_event_parser.add_argument('initial_number_of_tickets', type=ticket_int_type, required=True, location='json')
 
+event_status_parser = token_parser.copy()
+event_status_parser.add_argument('eventIdentifier', required=True, location='values')
+
+#Models
+event_create_model = api.inherit('EventCreateData', status_message_model, {
+    'eventIdentifier': fields.String(required=True, description='The unique identifier of the event.')
+})
+
+event_status_model = api.inherit('EventStatusData', status_message_model, {
+    'number_of_tickets': fields.Integer(required=True, description='The total number of tickets of the event.'),
+    'number_of_redeemed_tickets': fields.Integer(required=True, description='The number of redeemed tickets of the event.')
+})
+
+
 
 @api.route('/create')
 @api.expect(create_event_parser)
@@ -40,7 +55,7 @@ class Create(Resource):
         401: 'The token is blacklisted, invalid, or the signature expired.',
         500: 'An Internal Server Error Occurred.'
     })
-    @api.marshal_with(status_message_model)
+    @api.marshal_with(event_create_model)
     def post(self):
         """Create an event"""
         post_data = create_event_parser.parse_args()
@@ -66,7 +81,8 @@ class Create(Resource):
 
                 response_object = {
                     'status': 'success',
-                    'message': f'Successfully created event "{event.name}".'
+                    'message': f'Successfully created event "{event.name}".',
+                    'eventIdentifier': str(uuid.UUID(bytes=event.guid))
                     }
                 return response_object, 200
 
@@ -77,7 +93,7 @@ class Create(Resource):
             return response_object, 401
 
         except Exception:
-            logger.error('An error occurred registering a user', exc_info=True)
+            logger.error('An error occurred creating an event.', exc_info=True)
 
             response_object = {
                 'status': 'fail',
