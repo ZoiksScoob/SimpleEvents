@@ -60,7 +60,7 @@ data_fields = api.model('UserInfo', {
     'username': fields.String(
         required=True,
         description='Username.'),
-    'registered_on': fields.DateTime(
+    'registered_on_utc': fields.DateTime(
         required=True,
         description='Date & time of when the user was registered.'
     )
@@ -209,7 +209,7 @@ class Status(Resource):
                     'status': 'success',
                     'data': {
                         'username': user.username,
-                        'registered_on': user.registered_on
+                        'registered_on_utc': user.registered_on_utc
                     }
                 }
                 return response_object, 200
