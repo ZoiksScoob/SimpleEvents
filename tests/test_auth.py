@@ -102,6 +102,28 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(response.content_type == 'application/json')
             self.assertEqual(response.status_code, 404)
 
+    def test_user_login_with_too_short_password(self):
+        """ Test for login with too short a password """
+        with self.client:
+            # user registration
+            resp_register = register_user(self, 'dummy_username', '12345678')
+            data_register = json.loads(resp_register.data.decode())
+            self.assertTrue(data_register['status'] == 'success')
+            self.assertTrue(
+                data_register['message'] == 'Successfully registered.'
+            )
+            self.assertTrue(data_register['auth_token'])
+            self.assertTrue(resp_register.content_type == 'application/json')
+            self.assertEqual(resp_register.status_code, 200)
+            # invalid login
+            response = login_user(self, 'dummy_username', '1234567')
+            data = json.loads(response.data.decode())
+            self.assertTrue(data['message'] == "Input payload validation failed")
+            self.assertTrue(data['errors'])
+            self.assertTrue(data['errors']['password'] == "Password must be between 8 and 255 characters long.")
+            self.assertTrue(response.content_type == 'application/json')
+            self.assertEqual(response.status_code, 400)
+
     def test_user_status(self):
         """ Test for user status """
         with self.client:
