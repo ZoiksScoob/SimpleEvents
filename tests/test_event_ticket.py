@@ -253,11 +253,16 @@ class TestTicket(TestEventBlueprint):
 
         # Redeem
         redeem_response = self.client.get(
-                f'/redeem/{ticketIdentifier}',
+                f'redeem/{ticketIdentifier}',
                 content_type='application/json',
             )
 
+        redeem_data = json.loads(redeem_response.data.decode())
+
         self.assertTrue(redeem_response.status_code, 200)
+        self.assertEqual(redeem_response.content_type, 'application/json')
+        self.assertEqual(redeem_data['status'], 'success')
+        self.assertEqual(redeem_data['message'], 'OK: ticket redeemed.')
 
         # See the unredeemed tickets
         download_response = self.client.get(
@@ -275,11 +280,15 @@ class TestTicket(TestEventBlueprint):
 
         # Check you can't redeem again
         redeem_response = self.client.get(
-                f'/redeem/{ticketIdentifier}',
+                f'redeem/{ticketIdentifier}',
                 content_type='application/json',
             )
 
+        redeem_data = json.loads(redeem_response.data.decode())
+
         self.assertTrue(redeem_response.status_code, 410)
+        self.assertEqual(redeem_data['status'], 'success')
+        self.assertEqual(redeem_data['message'], 'GONE: ticket has already been redeemed.')
 
         # Check no other ticket has been accidentally redeemed
         download_response = self.client.get(
