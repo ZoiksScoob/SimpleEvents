@@ -2,6 +2,17 @@
 A simple Event &amp; Ticket management web application
 
 
+### Running the SimpleEvents Application
+
+Before running a secret key must be set in the environment, the environment variable that's expected is `SECRET_KEY`.
+
+An optional environment variable is `AUTH_TOKEN_EXPIRY_SECONDS`, which sets how long tokens have before expiring. The defaults for which are set in the `config.py` file.
+
+Once you've set the environment variables, the server can be run simply using the manager like so
+
+    `python manage.py runserver`
+
+
 ### Developing SimpleEvents
 
 #### Setting Up A Virtual Environment
