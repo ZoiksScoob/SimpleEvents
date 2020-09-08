@@ -138,6 +138,51 @@ class TestEvent(TestEventBlueprint):
             self.assertEqual(status_data['data']['number_of_redeemed_tickets'], 0)
             self.assertEqual(status_response.content_type, 'application/json')
 
+    def test_downloading_unredeemed_tickets_of_event(self):
+        """ Test download of unredeemed tickets of an event """
+        with self.client:
+            reg_response = self.register_user('dummy_username', '12345678')
+
+            auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
+
+            event_response = self.create_event(
+                name='test',
+                initial_number_of_tickets=2,
+                auth_token=auth_token)
+
+            event_data = json.loads(event_response.data.decode())
+
+            download_response = self.client.get(
+                f'event/download/{event_data["eventIdentifier"]}',
+                content_type='application/json',
+                headers=dict(Authorization=auth_token)
+            )
+
+            download_data = json.loads(download_response.data.decode())
+
+            self.assertEqual(download_response.status_code, 200)
+            self.assertEqual(download_data['status'], 'success')
+            self.assertTrue(download_data['data'])
+            self.assertTrue(isinstance(download_data['data']['eventIdentifiers'], list))
+            self.assertEqual(len(download_data['data']['eventIdentifiers']), 2)
+            self.assertEqual(download_response.content_type, 'application/json')
+
+            eventIdentifier = uuid.UUID(event_data["eventIdentifier"])
+            ticketIdentifiers = [uuid.UUID(id_).bytes for id_ in download_data['data']['eventIdentifiers']]
+
+            tickets = db.session.query(
+                    db.func.count(Ticket.id).label('n')
+                )\
+                .join(Event)\
+                .filter(db.and_(
+                    Event.guid == eventIdentifier.bytes,
+                    Ticket.is_redeemed == False,
+                    Ticket.guid.in_(ticketIdentifiers)
+                ))\
+                .first()
+
+            self.assertEqual(tickets.n, 2)
+
 
 if __name__ == '__main__':
     unittest.main()
