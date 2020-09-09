@@ -1,6 +1,7 @@
 import logging
 import uuid
 from flask_restx import Namespace, Resource, fields
+from flask_restx import inputs
 
 from simple_events.models import db
 from simple_events.models.auth import User
@@ -26,6 +27,7 @@ natural_num_type.__schema__ = {'type': 'integer', 'format': 'my-custom-natural-n
 # Parser
 create_event_parser = token_parser.copy()
 create_event_parser.add_argument('name', required=True, location='json')
+create_event_parser.add_argument('date', type=inputs.date, required=True, location='json')
 create_event_parser.add_argument(
     'initial_number_of_tickets',
     type=natural_num_type,
@@ -52,6 +54,7 @@ event_create_model = api.inherit('EventCreateData', status_message_model, {
 
 status_data_model = api.model('EventStatusData', {
     'name': fields.String(required=True, description='Name of the event.'),
+    'date': fields.Date(required=True, description='Date of the event.'),
     'number_of_tickets': fields.Integer(
         required=True,
         description='The total number of tickets of the event.'),
@@ -100,6 +103,7 @@ class Create(Resource):
             if not isinstance(resp, str):
                 event = Event(
                     name=post_data['name'],
+                    date=post_data['date'],
                     initial_number_of_tickets=post_data['initial_number_of_tickets'],
                     author_id=resp
                 )
@@ -169,12 +173,13 @@ class Status(Resource):
 
                 result = db.session.query(
                             Event.name.label('name'),
+                            Event.date.label('date'),
                             db.func.count(Ticket.id).label('total'),
                             db.func.sum(Ticket.is_redeemed).label('redeemed')
                         )\
                         .join(Event)\
                         .filter(Event.guid == eventIdentifier.bytes)\
-                        .group_by(Event.name)\
+                        .group_by(Event.name, Event.date)\
                         .first()
 
                 response_object = {
@@ -182,6 +187,7 @@ class Status(Resource):
                     'message': 'Successfully retrieved event status.',
                     'data': {
                         'name': result.name,
+                        'date': result.date,
                         'number_of_tickets': result.total,
                         'number_of_redeemed_tickets': int(result.redeemed)
                     }}
