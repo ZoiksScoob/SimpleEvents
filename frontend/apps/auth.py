@@ -18,7 +18,7 @@ layout = html.Div([
         dcc.Tab(label='Register', value='register-tab'),
     ]),
     html.Div(id='authentication-tabs-content'),
-    html.Div(id='error', style={'color': 'red', 'fontSize': 14})
+    html.Div(id='auth-error', style={'color': 'red', 'fontSize': 14})
 ])
 
 
@@ -59,7 +59,7 @@ def render_content(tab):
 @app.callback(
     [
         dep.Output('session', 'data'),
-        dep.Output('error', 'children'),
+        dep.Output('auth-error', 'children'),
         dep.Output('hidden-div-for-auth-page-redirect-callback', 'children')
     ],
     [dep.Input('button', 'n_clicks')],
