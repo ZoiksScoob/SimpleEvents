@@ -36,6 +36,8 @@ create_event_parser.add_argument(
 
 event_status_parser = token_parser.copy()
 
+event_all_parser = token_parser.copy()
+
 event_download_parser = token_parser.copy()
 
 event_add_parser = token_parser.copy()
@@ -65,6 +67,14 @@ status_data_model = api.model('EventStatusData', {
 
 event_status_model = api.inherit('StatusDataModel', status_message_model, {
     'data': fields.Nested(status_data_model, required=True)
+})
+
+all_data_model = api.inherit('EventAllData', status_data_model, {
+    'guid': fields.String(required=True, description='Identifier of the event.'),
+})
+
+event_all_model = api.inherit('AllDataModel', status_message_model, {
+    'data': fields.List(fields.Nested(all_data_model))
 })
 
 download_data_model = api.model('EventDowloadData', {
@@ -122,6 +132,79 @@ class Create(Resource):
                     'message': f'Successfully created event "{event.name}".',
                     'eventIdentifier': str(uuid.UUID(bytes=event.guid))
                     }
+                return response_object, 200
+
+            response_object = {
+                'status': 'fail',
+                'message': resp
+                }
+            return response_object, 401
+
+        except Exception:
+            logger.error('An error occurred creating an event.', exc_info=True)
+
+            response_object = {
+                'status': 'fail',
+                'message': 'An Internal Server Error Occurred.',
+            }
+            return response_object, 500
+
+
+@api.route('/all')
+@api.expect(event_all_parser)
+class All(Resource):
+    """
+    Event All Resource
+    """
+    @api.doc(responses={
+        200: 'Successfully retrieved event status.',
+        400: 'Bad Request',
+        401: 'The token is blacklisted, invalid, or the signature expired.',
+        402: 'Invalid eventIdentifier.',
+        500: 'An Internal Server Error Occurred.'
+    })
+    @api.marshal_with(event_all_model)
+    def get(self):
+        """Get status of an event"""
+        params = event_all_parser.parse_args()
+
+        try:
+            resp = User.decode_auth_token(params['Authorization'])
+
+            if not isinstance(resp, str):
+                result = db.session.query(
+                        Event.guid.label('guid'),
+                        Event.name.label('name'),
+                        Event.date.label('date'),
+                        db.func.count(Ticket.id).label('total'),
+                        db.func.sum(Ticket.is_redeemed).label('redeemed')
+                    )\
+                    .join(Event)\
+                    .group_by(
+                        Event.guid,
+                        Event.name,
+                        Event.date
+                        )\
+                    .all()
+
+                #import pdb; pdb.set_trace()
+
+                data = [
+                    {
+                        'guid': str(uuid.UUID(bytes=row.guid)),
+                        'name': row.name,
+                        'date': row.date,
+                        'number_of_tickets': row.total,
+                        'number_of_redeemed_tickets': int(row.redeemed)
+                    }
+                    for row in result
+                ]
+
+                response_object = {
+                    'status': 'success',
+                    'message': 'Successfully retrieved event status.',
+                    'data': data
+                }
                 return response_object, 200
 
             response_object = {
