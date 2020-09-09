@@ -59,7 +59,13 @@ def render_content(tab, session):
                     {"name": 'Total Number of Tickets', "id": 'number_of_tickets'},
                     {"name": 'Number of Redeemed Tickets', "id": 'number_of_redeemed_tickets'},
                 ],
-                data=content)
+                data=content,
+                row_selectable="single",
+                filter_action="native",
+                sort_action="native",
+                page_action="native",
+                page_current= 0,
+                page_size= 25)
         ])
         return layout
 
