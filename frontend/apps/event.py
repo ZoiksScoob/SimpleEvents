@@ -50,7 +50,24 @@ def render_content(tab, session):
 
         style = {'color': 'red', 'fontSize': 14} if message is None else {'fontSize': 14}
 
+        n_tickets_add_input = dbc.FormGroup([
+            dbc.Label("Additional No. Tickets", html_for="event-add-n_tickets", width=5),
+            dbc.Col(
+                dbc.Input(
+                    type="number",
+                    id="event-add-n_tickets-row",
+                    placeholder="Enter additional number of tickets for selected event",
+                    min=1
+                ),
+                width=20)
+            ], row=True)
+
+        add_button = dbc.FormGroup([dbc.Button('Add', id='add-button')])
+
+        add_message = dbc.FormGroup(html.Div(id='add-message'))
+
         layout = html.Div([
+            dbc.Form([n_tickets_add_input, add_button, add_message]),
             html.Button('Refresh Events', id='refresh-button'),
             html.Div(id='event-error', children=message, style=style),
             dash_table.DataTable(
@@ -173,6 +190,51 @@ def create_event(n_clicks, session, name, date, n_tickets):
 
     response = r.post(
         api_url + 'event/create',
+        headers=headers,
+        data=json.dumps(payload)
+        )
+
+    content = json.loads(response.content.decode())
+
+    if response.status_code == 200:
+        return content['message'], {'color': 'green', 'fontSize': 14}
+
+    return content['message'], {'color': 'red', 'fontSize': 14}
+
+
+@app.callback(
+    [
+        Output('add-message', 'children'),
+        Output('add-message', 'style'),
+    ],
+    [Input('add-button', 'n_clicks')],
+    state=[
+        State('session', 'data'),
+        State('event-add-n_tickets-row', 'value'),
+        State('events-table', 'selected_rows'),
+        State('events-table', 'data')
+    ]
+)
+def add_to_event(n_clicks, session, n_tickets, event, rows):
+    if not n_clicks:
+        raise PreventUpdate
+
+    if not event:
+        return 'Please select an event', {'color': 'red', 'fontSize': 14}
+    elif not n_tickets:
+        return 'Please input the number of additional tickets you would like to add', {'color': 'red', 'fontSize': 14}
+
+    headers = {
+        'Authorization': session['token'],
+        'content-type': 'application/json'
+        }
+
+    payload = {
+        'additionalNumberOfTickets': n_tickets,
+    }
+
+    response = r.put(
+        api_url + f"event/add/{rows[event[0]]['guid']}",
         headers=headers,
         data=json.dumps(payload)
         )
