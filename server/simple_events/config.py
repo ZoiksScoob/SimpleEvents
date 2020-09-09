@@ -15,6 +15,7 @@ class BaseConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     RESTX_VALIDATE = True
     AUTH_TOKEN_EXPIRY_SECONDS = int(os.environ.get('AUTH_TOKEN_EXPIRY_SECONDS', 60 * 60))
+    UPLOAD_FOLDER = os.path.join(basedir, 'files')
 
 
 class DevelopmentConfig(BaseConfig):

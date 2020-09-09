@@ -70,7 +70,9 @@ def render_content(tab, session):
         layout = html.Div([
             dbc.Form([n_tickets_add_input, add_button, add_message]),
             html.Button('Refresh Events', id='refresh-button'),
-            html.Div(id='event-error', children=message, style=style),
+            html.Button('Download Unredeemed Tickets of Selected Event', id='download-button'),
+            html.Div(id='event-error', children=message, style={'color': 'red', 'fontSize': 14}),
+            html.Div(id='download-error', style=style),
             dash_table.DataTable(
                 id='events-table',
                 columns=[
@@ -294,6 +296,7 @@ def check_ticket_status(n_clicks, session, ticket_identifier):
 
     response = r.get(
         api_url + f'status/{ticket_identifier}', 
+ 
         headers=headers)
 
     content = json.loads(response.content.decode())
@@ -301,3 +304,35 @@ def check_ticket_status(n_clicks, session, ticket_identifier):
     color = 'success' if (response.status_code == 200) else 'danger'
 
     return content['message'], color
+
+
+@app.callback(
+    [
+        Output('download-error', 'children')
+    ],
+    [Input('download-button', 'n_clicks')],
+    state=[
+        State('session', 'data'),
+        State('events-table', 'selected_rows'),
+        State('events-table', 'data')
+    ]
+)
+def download_event_unredeemed_tickets(n_clicks, session, event, rows):
+    if not n_clicks:
+        raise PreventUpdate
+    elif not event:
+        return 'Please select an event.'
+    headers = {
+        'Authorization': session['token'], 
+        'content-type': 'application/json'
+        }
+
+    response = r.get(
+        api_url + f"event/download/{rows[event[0]]['guid']}", 
+        headers=headers)
+
+    content = json.loads(response.content.decode())
+
+    if response.status_code == 200:
+        return None
+    return content['message']

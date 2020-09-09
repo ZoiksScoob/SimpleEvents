@@ -1,12 +1,17 @@
+import os
 import logging
 import uuid
+import csv
+import time
 from flask_restx import Namespace, Resource, fields
 from flask_restx import inputs
+from flask import send_file
 
 from simple_events.models import db
 from simple_events.models.auth import User
 from simple_events.models.event import Event, Ticket
 from simple_events.apis.auth import token_parser, status_message_model
+from simple_events.config import basedir
 
 
 # Get logger
@@ -338,13 +343,18 @@ class Download(Resource):
 
                 ticket_identifiers = [str(uuid.UUID(bytes=row.guid)) for row in result]
 
-                response_object = {
-                    'status': 'success',
-                    'message': 'Successfully downloaded unredeemed event tickets.',
-                    'data': {
-                        'ticketIdentifiers': ticket_identifiers
-                    }}
-                return response_object, 200
+                file_name = 'event_' + str(eventIdentifier) + '_' + str(int(time.time())) + '.csv'
+                base_path = os.path.join(basedir, 'files')
+                file_path = os.path.join(base_path, file_name)
+
+                with open(file_path, 'w', newline='') as file_handle:
+                    wr = csv.writer(file_handle, delimiter='\n')
+                    wr.writerow(ticket_identifiers)
+
+                # text/csv
+                from simple_events.app import app
+
+                return send_file(app.config['UPLOAD_FOLDER'], file_name, attachment_filename=file_name, as_attachment=True)
 
             response_object = {
                 'status': 'fail',
