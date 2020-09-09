@@ -131,10 +131,10 @@ def populate_table(n_clicks, session):
     if not n_clicks:
         raise PreventUpdate
 
-    content, message = get_event_details(session)
+    data, message = get_event_details(session)
 
     if message is None:
-        return content['data'], None
+        return data, None
 
     err_msg = 'Error getting data. ' + message
     return dash.no_update, err_msg
