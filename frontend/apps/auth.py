@@ -12,7 +12,7 @@ from app import app, api_url
 
 
 layout = html.Div([
-    html.Div('Authentication Page'),
+    html.H1('Authentication Page'),
     dcc.Tabs(id='authentication-tabs', value='register-tab', children=[
         dcc.Tab(label='Login', value='login-tab'),
         dcc.Tab(label='Register', value='register-tab'),
