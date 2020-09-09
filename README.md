@@ -1,5 +1,5 @@
 # SimpleEvents
-A simple Event &amp; Ticket management web application
+A simple Event &amp; Ticket management web application by [Alex Brown](https://www.linkedin.com/in/alexander-jc-brown/)
 
 These instructions assume you've pulled the lastest version of the respository.
 
