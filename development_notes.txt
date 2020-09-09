@@ -76,3 +76,29 @@ return the requested data. The easiest would be a list of all events.
 
 Once the api has all the endpoints it needs, I then need to work on a frontend. 
 I am familiar with plotly dash, that's easy enough to get up and running.
+
+------------------------------------------------------------------------------------------------------------------------
+
+For the dashboard, I will have a simple multi page app, the structure is the boilerplate given 
+here https://dash.plotly.com/urls under the "Structuring a Multi-Page App" section.
+
+I want the app to do the following:
+    Authentication
+    Display events,
+    Display a single event,
+        - Might have this as an element in the events list page, as the info is minimal, as opposed to separate page
+    Display ticket
+
+I need a global session storage to save tokens from the API.
+
+I need the page routing to check the session for a token, check if it's still valid 
+then if it is continue to requested page,
+otherwise go to the login page
+
+Also, once registered or logged in, I need to go to a home page straight away.
+
+If a token becomes invalid whilst on a page, I should prompt/force the user to go to the login page.
+
+If there's time, maybe retain some state of the last page visted, so on relogin I can take the user back to 
+where they were. This sounds like playing with the session storage, and using that as an intermediary on all callbacks,
+so the session gets all this info as token expiry is encountered. Unless dash now supports an element to exist in multiple outputs.
