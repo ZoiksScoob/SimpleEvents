@@ -104,7 +104,7 @@ def render_content(tab, session):
                 dbc.Input(
                     type="number",
                     id="event-n_tickets-row",
-                    placeholder="Enter name of event",
+                    placeholder="Enter initial numver of tickets of event",
                     min=1
                 ),
                 width=10)
