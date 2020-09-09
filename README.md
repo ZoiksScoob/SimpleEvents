@@ -24,9 +24,13 @@ An optional environment variable is `AUTH_TOKEN_EXPIRY_SECONDS`, which sets how 
 
 #### 1.3. Running
 
-Once you've set the environment variables, the server can be run simply using the manager like so
+Once you've set the environment variables, the server can be run simply using the manager from the command line like so
 
     `python server/manage.py runserver`
+
+The front end can be run simply with the following in the command line
+
+    `python frontend/index.py
 
 
 ## 2. Developing The SimpleEvents API
@@ -55,3 +59,12 @@ As the database is version controlled, each logically related set of changes to 
     `python server/manage.py db upgrade --message`
 
     (`-m` can be used instead of `--message`)
+
+
+## 3. Testing
+
+#### 3.1 Testing The Server
+
+The server in the backend can be test simplyby running the already written tests with the following command line command
+
+    `python server/manage.py test`
