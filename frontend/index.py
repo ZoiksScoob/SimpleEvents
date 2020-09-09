@@ -8,6 +8,7 @@ from apps import auth, event, ticket
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
+    dcc.Store(id='session', storage_type='session'),
     html.Div(id='page-content')
 ])
 
