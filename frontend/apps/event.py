@@ -18,6 +18,7 @@ layout = html.Div([
     dcc.Tabs(id='event-tabs', value='view-all-tab', children=[
         dcc.Tab(label='View All', value='view-all-tab'),
         dcc.Tab(label='Create', value='create-tab'),
+        dcc.Tab(label='Ticket', value='ticket-tab'),
     ]),
     html.Div(id='event-tabs-content'),
 ])
@@ -135,6 +136,28 @@ def render_content(tab, session):
 
         return layout
 
+    elif tab == 'ticket-tab':
+        ticket_input = dbc.FormGroup([
+            dbc.Label("Ticket Identifier", html_for="event-ticket", width=2),
+            dbc.Col(
+                dbc.Input(
+                    type="text",
+                    id="event-ticket-row",
+                    placeholder="Enter identifier of a ticket",
+                    minLength=1,
+                    maxLength=50,
+                ),
+                width=10)
+            ], row=True)
+
+        status_button = dbc.FormGroup([dbc.Button('Check Status', id='status-button')])
+
+        status_message = dbc.Alert(id='status-message')
+
+        layout = dbc.Form([ticket_input, status_button, status_message])
+
+        return layout
+
 
 @app.callback(
     [
@@ -245,3 +268,36 @@ def add_to_event(n_clicks, session, n_tickets, event, rows):
         return content['message'], {'color': 'green', 'fontSize': 14}
 
     return content['message'], {'color': 'red', 'fontSize': 14}
+
+
+@app.callback(
+    [
+        Output('status-message', 'children'),
+        Output('status-message', 'color'),
+    ],
+    [Input('status-button', 'n_clicks')],
+    state=[
+        State('session', 'data'),
+        State('event-ticket-row', 'value')
+    ]
+)
+def check_ticket_status(n_clicks, session, ticket_identifier):
+    if not n_clicks:
+        raise PreventUpdate
+    elif not ticket_identifier:
+        raise PreventUpdate
+
+    headers = {
+        'Authorization': session['token'], 
+        'content-type': 'application/json'
+        }
+
+    response = r.get(
+        api_url + f'status/{ticket_identifier}', 
+        headers=headers)
+
+    content = json.loads(response.content.decode())
+
+    color = 'success' if (response.status_code == 200) else 'danger'
+
+    return content['message'], color

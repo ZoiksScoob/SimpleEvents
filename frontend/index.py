@@ -8,7 +8,7 @@ from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output, State
 
 from app import app, api_url
-from apps import auth, event, ticket
+from apps import auth, event
 
 
 app.layout = html.Div([
@@ -56,8 +56,6 @@ def display_page(pathname, session):
         return '', None
     elif pathname == '/event':
         return event.layout, hide_session_expiry_div
-    elif pathname == '/ticket':
-        return ticket.layout, hide_session_expiry_div
     else:
         return '404: Page Not Found', hide_session_expiry_div
 
