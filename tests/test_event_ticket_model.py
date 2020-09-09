@@ -27,6 +27,7 @@ class TestEventModel(BaseTestCase):
 
         event = Event(
             name='test',
+            date=datetime.now().date(),
             author_id=user.id,
             initial_number_of_tickets=10
         )
@@ -46,7 +47,7 @@ class TestEventModel(BaseTestCase):
 
 
 class TestTicketModel(BaseTestCase):
-    def test_insert_in_event(self):
+    def test_insert_in_ticket(self):
         for username in ('test_username1', 'test_username2'):
             user = User(
                 username=username,
@@ -62,6 +63,7 @@ class TestTicketModel(BaseTestCase):
 
         event = Event(
             name='test',
+            date=datetime.now().date(),
             author_id=user.id,
             initial_number_of_tickets=10
         )

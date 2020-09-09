@@ -10,11 +10,12 @@ from simple_events.models.auth import User
 
 
 class TestEventBlueprint(BaseTestCase):
-    def create_event(self, name, initial_number_of_tickets, auth_token):
+    def create_event(self, name, date, initial_number_of_tickets, auth_token):
         return self.client.post(
                 'event/create',
                 data=json.dumps(dict(
                     name=name,
+                    date=str(date),
                     initial_number_of_tickets=initial_number_of_tickets
                 )),
                 content_type='application/json',
@@ -34,6 +35,7 @@ class TestEvent(TestEventBlueprint):
 
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=5,
                 auth_token=auth_token)
 
@@ -70,6 +72,7 @@ class TestEvent(TestEventBlueprint):
         with self.client:
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=5,
                 auth_token='invalid_token')
 
@@ -92,6 +95,7 @@ class TestEvent(TestEventBlueprint):
         with self.client:
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=-1,
                 auth_token='invalid_token')
 
@@ -119,8 +123,11 @@ class TestEvent(TestEventBlueprint):
 
             auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
 
+            event_date = datetime.now().date()
+
             event_response = self.create_event(
                 name='test',
+                date=event_date,
                 initial_number_of_tickets=2,
                 auth_token=auth_token)
 
@@ -138,6 +145,7 @@ class TestEvent(TestEventBlueprint):
             self.assertEqual(status_data['status'], 'success')
             self.assertTrue(status_data['data'])
             self.assertEqual(status_data['data']['name'], 'test')
+            self.assertEqual(status_data['data']['date'], str(event_date))
             self.assertEqual(status_data['data']['number_of_tickets'], 2)
             self.assertEqual(status_data['data']['number_of_redeemed_tickets'], 0)
             self.assertEqual(status_response.content_type, 'application/json')
@@ -151,6 +159,7 @@ class TestEvent(TestEventBlueprint):
 
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=2,
                 auth_token=auth_token)
 
@@ -195,6 +204,7 @@ class TestEvent(TestEventBlueprint):
 
         event_response = self.create_event(
             name='test',
+            date=datetime.now().date(),
             initial_number_of_tickets=2,
             auth_token=auth_token)
 
@@ -235,6 +245,7 @@ class TestTicket(TestEventBlueprint):
         # Make event
         event_response = self.create_event(
             name='test',
+            date=datetime.now().date(),
             initial_number_of_tickets=2,
             auth_token=auth_token)
 
@@ -314,6 +325,7 @@ class TestTicket(TestEventBlueprint):
         # Make event
         event_response = self.create_event(
             name='test',
+            date=datetime.now().date(),
             initial_number_of_tickets=2,
             auth_token=auth_token)
 
