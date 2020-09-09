@@ -1,26 +1,30 @@
-from dash import no_update
-from dash.exceptions import PreventUpdate
+import json
+
+import requests as r
 import dash_core_components as dcc
 import dash_html_components as html
 import dash.dependencies as dep
+
+from dash import no_update
+from dash.exceptions import PreventUpdate
 
 from app import app, api_url
 
 
 layout = html.Div([
-    html.Div('Authentication Page')
+    html.Div('Authentication Page'),
     dcc.Tabs(id='authentication-tabs', value='register-tab', children=[
         dcc.Tab(label='Login', value='login-tab'),
         dcc.Tab(label='Register', value='register-tab'),
     ]),
-    html.Div(id='authentication-tabs-content')
-    html.Div(id='error', style={'color': 'red', 'fontSize': 14}))
+    html.Div(id='authentication-tabs-content'),
+    html.Div(id='error', style={'color': 'red', 'fontSize': 14})
 ])
 
 
 # Forms
 def make_form(button_name):
-    return html.Div([,
+    return html.Div([
         dcc.Input(
                 id=f"input-username",
                 type="text",
@@ -55,11 +59,12 @@ def render_content(tab):
 @app.callback(
     [
         dep.Output('session', 'data'),
-        dep.Output('error', 'children')
+        dep.Output('error', 'children'),
+        dep.Output('hidden-div-for-auth-page-redirect-callback', 'children')
     ],
     [dep.Input('button', 'n_clicks')],
     [
-        dep.State('authentication-tabs', 'value')
+        dep.State('authentication-tabs', 'value'),
         dep.State('session', 'data'),
         dep.State('input-username', 'value'),
         dep.State('input-password', 'value'),
@@ -97,6 +102,6 @@ def on_click(n_clicks, tab, session, username, password):
 
         session['token'] = content['auth_token']
 
-        return session, ''
+        return session, '', '/event'
 
-    return no_update, content['message']
+    return None, content['message'], no_update
