@@ -10,11 +10,12 @@ from simple_events.models.auth import User
 
 
 class TestEventBlueprint(BaseTestCase):
-    def create_event(self, name, initial_number_of_tickets, auth_token):
+    def create_event(self, name, date, initial_number_of_tickets, auth_token):
         return self.client.post(
                 'event/create',
                 data=json.dumps(dict(
                     name=name,
+                    date=str(date),
                     initial_number_of_tickets=initial_number_of_tickets
                 )),
                 content_type='application/json',
@@ -34,6 +35,7 @@ class TestEvent(TestEventBlueprint):
 
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=5,
                 auth_token=auth_token)
 
@@ -70,6 +72,7 @@ class TestEvent(TestEventBlueprint):
         with self.client:
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=5,
                 auth_token='invalid_token')
 
@@ -92,6 +95,7 @@ class TestEvent(TestEventBlueprint):
         with self.client:
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=-1,
                 auth_token='invalid_token')
 
@@ -119,8 +123,11 @@ class TestEvent(TestEventBlueprint):
 
             auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
 
+            event_date = datetime.now().date()
+
             event_response = self.create_event(
                 name='test',
+                date=event_date,
                 initial_number_of_tickets=2,
                 auth_token=auth_token)
 
@@ -138,6 +145,7 @@ class TestEvent(TestEventBlueprint):
             self.assertEqual(status_data['status'], 'success')
             self.assertTrue(status_data['data'])
             self.assertEqual(status_data['data']['name'], 'test')
+            self.assertEqual(status_data['data']['date'], str(event_date))
             self.assertEqual(status_data['data']['number_of_tickets'], 2)
             self.assertEqual(status_data['data']['number_of_redeemed_tickets'], 0)
             self.assertEqual(status_response.content_type, 'application/json')
@@ -151,6 +159,7 @@ class TestEvent(TestEventBlueprint):
 
             event_response = self.create_event(
                 name='test',
+                date=datetime.now().date(),
                 initial_number_of_tickets=2,
                 auth_token=auth_token)
 
@@ -195,6 +204,7 @@ class TestEvent(TestEventBlueprint):
 
         event_response = self.create_event(
             name='test',
+            date=datetime.now().date(),
             initial_number_of_tickets=2,
             auth_token=auth_token)
 
@@ -235,6 +245,7 @@ class TestTicket(TestEventBlueprint):
         # Make event
         event_response = self.create_event(
             name='test',
+            date=datetime.now().date(),
             initial_number_of_tickets=2,
             auth_token=auth_token)
 
@@ -314,6 +325,7 @@ class TestTicket(TestEventBlueprint):
         # Make event
         event_response = self.create_event(
             name='test',
+            date=datetime.now().date(),
             initial_number_of_tickets=2,
             auth_token=auth_token)
 
@@ -366,6 +378,76 @@ class TestTicket(TestEventBlueprint):
         self.assertEqual(status_data['status'], 'success')
         self.assertEqual(status_data['message'], 'GONE: ticket redeemed.')
 
+
+    def test_download_of_events(self):
+        """ Test downloading list of all events with details """
+        # Make user
+        reg_response = self.register_user('dummy_username', '12345678')
+
+        auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
+
+        # Make 2 events
+        self.create_event(
+            name='test',
+            date=datetime.now().date(),
+            initial_number_of_tickets=2,
+            auth_token=auth_token)
+
+        event_response = self.create_event(
+            name='test2',
+            date=datetime.now().date(),
+            initial_number_of_tickets=5,
+            auth_token=auth_token)
+
+        event_data = json.loads(event_response.data.decode())
+
+        # Redeem a ticket
+        # Get ticket ids
+        download_response = self.client.get(
+                f'event/download/{event_data["eventIdentifier"]}',
+                content_type='application/json',
+                headers=dict(Authorization=auth_token)
+            )
+
+        download_data = json.loads(download_response.data.decode())
+
+        ticketIdentifier = download_data['data']['ticketIdentifiers'][0]
+
+        # Redeem
+        redeem_response = self.client.get(
+                f'redeem/{ticketIdentifier}',
+                content_type='application/json',
+            )
+
+        self.assertEqual(redeem_response.status_code, 200)
+
+        # Download events
+        reg_response = self.login_user('dummy_username', '12345678')
+
+        auth_token = json.loads(reg_response.data.decode("utf-8"))['auth_token']
+
+        all_response = self.client.get(
+                f'event/all',
+                content_type='application/json',
+                headers=dict(Authorization=auth_token)
+            )
+
+        all_data = json.loads(all_response.data.decode())
+
+        self.assertEqual(all_response.status_code, 200)
+        self.assertEqual(all_response.content_type, 'application/json')
+        self.assertEqual(all_data['status'], 'success')
+        self.assertTrue(all_data['data'])
+        self.assertEqual(len(all_data['data']), 2)
+
+        keys = ('name', 'guid', 'date', 'number_of_tickets', 'number_of_redeemed_tickets')
+
+        self.assertTrue(all(all(key in all_data['data'][i] for key in keys) for i in range(len(all_data['data']))))
+        self.assertEqual(all_data['data'][1]['name'], 'test2')
+        self.assertEqual(all_data['data'][1]['date'], str(datetime.now().date()))
+        self.assertTrue(uuid.UUID(all_data['data'][1]['guid']))
+        self.assertEqual(all_data['data'][1]['number_of_tickets'], 5)
+        self.assertEqual(all_data['data'][1]['number_of_redeemed_tickets'], 1)
 
 if __name__ == '__main__':
     unittest.main()

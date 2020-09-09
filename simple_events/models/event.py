@@ -8,7 +8,8 @@ class Event(db.Model):
     __tablename__ = "event"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), unique=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    date = db.Column(db.Date, nullable=False)
     initial_number_of_tickets = db.Column(db.Integer, nullable=False)
     additional_number_of_tickets = db.Column(db.Integer, nullable=True)
     guid = db.Column(db.BLOB, nullable=False)
@@ -17,8 +18,9 @@ class Event(db.Model):
 
     db.UniqueConstraint(guid, name='uix__event__guid')
 
-    def __init__(self, name, initial_number_of_tickets, author_id):
+    def __init__(self, name, date, initial_number_of_tickets, author_id):
         self.name = name
+        self.date = date
         self.initial_number_of_tickets = initial_number_of_tickets
         self.author_id = author_id
         self.guid = uuid.uuid4().bytes
