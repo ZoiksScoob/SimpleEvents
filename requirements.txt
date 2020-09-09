@@ -1,4 +1,6 @@
 coverage==5.2.1
+dash==1.16.0
+dash-bootstrap-components==0.10.5
 Flask==1.1.2
 Flask-Migrate==2.5.3
 Flask-RESTX==0.2.0
