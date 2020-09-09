@@ -70,7 +70,6 @@ def display_page(pathname, session):
     ]
 )
 def redirect(*args):
-    print('redirect')
     ctx = dash.callback_context
 
     if not ctx.triggered:
