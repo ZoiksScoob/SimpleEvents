@@ -192,8 +192,6 @@ class All(Resource):
                         )\
                     .all()
 
-                #import pdb; pdb.set_trace()
-
                 data = [
                     {
                         'guid': str(uuid.UUID(bytes=row.guid)),
