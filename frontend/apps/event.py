@@ -4,8 +4,11 @@ import json
 import requests as r
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
+
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
+from datetime import datetime
 
 from app import app, api_url
 
@@ -70,7 +73,50 @@ def render_content(tab, session):
         return layout
 
     elif tab == 'create-tab':
-        return 'Create tab'
+        name_input = dbc.FormGroup([
+            dbc.Label("Name", html_for="event-name", width=2),
+            dbc.Col(
+                dbc.Input(
+                    type="text",
+                    id="event-name-row",
+                    placeholder="Enter name of event",
+                    minLength=1,
+                    maxLength=255,
+                ),
+                width=10)
+            ], row=True)
+
+        date_input = dbc.FormGroup([
+            dbc.Label("Date", html_for="event-date", width=2),
+            dbc.Col(
+                dcc.DatePickerSingle(
+                    min_date_allowed=datetime.now().date(),
+                    id="event-date-row",
+                    initial_visible_month=datetime.now().date(),
+                    display_format='DD/MM/YYYY'
+                ),
+                width=10)
+            ], row=True)
+
+        n_tickets_input = dbc.FormGroup([
+            dbc.Label("Initial No. Tickets", html_for="event-n_tickets", width=2),
+            dbc.Col(
+                dbc.Input(
+                    type="number",
+                    id="event-n_tickets-row",
+                    placeholder="Enter name of event",
+                    min=1
+                ),
+                width=10)
+            ], row=True)
+
+        button = dbc.FormGroup([dbc.Button('Create', id='create-button')])
+
+        message = dbc.FormGroup(html.Div(id='create-message'))
+
+        layout = dbc.Form([name_input, date_input, n_tickets_input, button, message])
+
+        return layout
 
 
 @app.callback(
@@ -92,3 +138,48 @@ def populate_table(n_clicks, session):
 
     err_msg = 'Error getting data. ' + message
     return dash.no_update, err_msg
+
+
+@app.callback(
+    [
+        Output('create-message', 'children'),
+        Output('create-message', 'style'),
+    ],
+    [Input('create-button', 'n_clicks')],
+    state=[
+        State('session', 'data'),
+        State('event-name-row', 'value'),
+        State('event-date-row', 'date'),
+        State('event-n_tickets-row', 'value')
+    ]
+)
+def create_event(n_clicks, session, name, date, n_tickets):
+    if not n_clicks:
+        raise PreventUpdate
+
+    if not all((name, date, n_tickets)):
+        return 'Please input a value for all inputs.', {'color': 'red', 'fontSize': 14}
+
+    headers = {
+        'Authorization': session['token'],
+        'content-type': 'application/json'
+        }
+
+    payload = {
+        'name': name,
+        'date': date,
+        'initial_number_of_tickets': n_tickets
+    }
+
+    response = r.post(
+        api_url + 'event/create',
+        headers=headers,
+        data=json.dumps(payload)
+        )
+
+    content = json.loads(response.content.decode())
+
+    if response.status_code == 200:
+        return content['message'], {'color': 'green', 'fontSize': 14}
+
+    return content['message'], {'color': 'red', 'fontSize': 14}
