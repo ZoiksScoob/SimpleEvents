@@ -185,6 +185,11 @@ class All(Resource):
                         Event.name,
                         Event.date
                         )\
+                    .order_by(
+                        Event.date.desc(),
+                        Event.name.asc(),
+                        Event.guid.asc()
+                        )\
                     .all()
 
                 #import pdb; pdb.set_trace()
